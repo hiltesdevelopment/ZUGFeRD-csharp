@@ -1,0 +1,32 @@
+on:
+  schedule:
+    - cron:  '0 7 * * *'
+    # scheduled at 07:00 every day
+
+  workflow_dispatch:  # click the button on Github repo!
+
+
+jobs:
+  sync_with_upstream:
+    runs-on: ubuntu-latest
+    name: Sync main with upstream latest
+
+    steps:
+    # Step 1: run a standard checkout action, provided by github
+    - name: Checkout main
+      uses: actions/checkout@v2
+      with:
+        ref: main
+        # submodules: 'recursive'     ### may be needed in your situation
+
+    - name: Sync and merge upstream repository with your current repository
+      uses: dabreadman/sync-upstream-repo@v1.0.0.b
+      with:
+       # URL of gitHub public upstream repo
+       upstream_repo: "https://github.com/stephanstapel/ZUGFeRD-csharp"
+       # Branch to merge from upstream (defaults to downstream branch)
+       upstream_branch: master
+       # Branch to merge into downstream
+       downstream_branch: master
+       # GitHub Bot token
+       token: ${{ secrets.GITHUB_TOKEN }}
