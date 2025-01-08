@@ -10,7 +10,6 @@ Implementing and maintaining this library is a lot of hard work. I'm doing this 
 
 In particular, I am searching for sponsors for:
 
-* Complete UBL format support (reading and writing)
 * Validation using the standard XSL
 * Invoice visualization
 
@@ -18,16 +17,21 @@ In particular, I am searching for sponsors for:
 The ZUGFeRD library allows to create XML files as required by German electronic invoice initiative ZUGFeRD as well invoices in the successor Factur-X. One special profile of Factur-X is the German XRechnung format.
 The library is meant to be as simple as possible, however it is not straight forward to use as the resulting XML file contains a complete invoice in XML format. Please take a look at the ZUGFeRD-Test project to find sample creation code. This code creates the same XML file as shipped with the ZUGFeRD information package.
 
+# Consulting/ Commercial Support
+*Auf Deutsch:* Falls Sie kommerzielle Unterstützung bei der Umsetzung von ZUGFeRD/ XRechnung in Ihrem Unternehmen benötigen, schreiben Sie mir gerne an stephan@s2-industries.com
+
+*In English* In case you you consulting or commercial support for implementing ZUGFeRD/ XRechnung/ Factur-X in your company, please send an email to stephan@s2-industries.com
+
 # Relationship between the different standards
 Since there are a lot of terms and standards around electronic invoices, I'd like to lay out my understanding:
 
 - ZUGFeRD was developed by a German initiative as a standard for electronic invoices (https://www.ferd-net.de/).
-- ZUGFeRD 2.1 is identical to the German/French cooperation Factur-X (ZUGFeRD 2.1 = Factur-X 1.0) (https://www.ferd-net.de/standards/what-is-factur-x/index.html).
+- ZUGFeRD 2.1 is identical to the German/French cooperation Factur-X (ZUGFeRD 2.1 = Factur-X 1.0) (https://www.ferd-net.de/en/standards/zugferd/factur-x).
 - The standard Factur-X 1.0 (respectively ZUGFeRD 2.1) is conform with the European norm EN 16931.
 - EN 16931 in turn is based on worldwide UN/CEFACT standard 'Cross Industry Invoice' (CII).
-- XRechnung as another German standard is a subset of EN 16931. It is defined by another party called KoSIT (https://www.xoev.de/). It comes with its own validation rules (https://www.ferd-net.de/standards/what-is-xrechnung/index.html).
-- This means that both Factur-X 1.0 (respectively ZUGFeRD 2.1) and XRechnung are conform with EN 16931. This does not automatically result that those invoices are per se identical
-- To achieve compatibility, ZUGFeRD 2.1.1 introduced a XRechnung reference profile to guarantee compatibility between the two sister formats
+- XRechnung as another German standard is a subset of EN 16931. It is defined by another party called KoSIT (https://www.xoev.de/). It comes with its own validation rules (https://xeinkauf.de/dokumente/).
+- This means that both Factur-X 1.0 (respectively ZUGFeRD 2.1) and XRechnung are conform with EN 16931. This does not automatically result that those invoices are per se identical.
+- To achieve compatibility, ZUGFeRD 2.1.1 introduced a XRechnung reference profile to guarantee compatibility between the two sister formats.
 
 # License
 Subject to the Apache license http://www.apache.org/licenses/LICENSE-2.0.html
@@ -78,7 +82,7 @@ desc.AddApplicableTradeTax(129.37m, 7m, TaxTypes.VAT, TaxCategoryCodes.S);
 desc.AddApplicableTradeTax(64.46m, 19m, TaxTypes.VAT, TaxCategoryCodes.S);
 desc.AddLogisticsServiceCharge(5.80m, "Versandkosten", TaxTypes.VAT, TaxCategoryCodes.S, 7m);
 desc.AddTradePaymentTerms("Zahlbar innerhalb 30 Tagen netto bis 04.04.2018", new DateTime(2018, 4, 4));
-desc.AddTradePaymentTerms("3% Skonto innerhalb 10 Tagen bis 15.03.2018", new DateTime(2018, 3, 15), 3m);
+desc.AddTradePaymentTerms("3% Skonto innerhalb 10 Tagen bis 15.03.2018", new DateTime(2018, 3, 15), PaymentTermsType.Skonto, 30, 3m);
 ```
 
 Optionally, to support Peppol, an electronic address can be passed:
@@ -91,9 +95,8 @@ desc.SetBuyerElectronicAddress("LU987654321", ElectronicAddressSchemeIdentifiers
 The fields are only necessary if you want to send the XRechnung via the Peppol network.
 A description of the fields can be found in the following documents:
 
-[https://docs.peppol.eu/edelivery/policies/PEPPOL-EDN-Policy-for-use-of-identifiers-4.1.0-2020-03-11.pdf](https://docs.peppol.eu/edelivery/policies/PEPPOL-EDN-Policy-for-use-of-identifiers-4.2.0-2023-06-19.pdf)
+[https://docs.peppol.eu/edelivery/policies/PEPPOL-EDN-Policy-for-use-of-identifiers-4.3.0-2024-10-03.pdf](https://docs.peppol.eu/edelivery/policies/PEPPOL-EDN-Policy-for-use-of-identifiers-4.3.0-2024-10-03.pdf)
 
-https://www.ferd-net.de/upload/Dokumente/FACTUR-X_ZUGFeRD_2p0_Teil1_Profil_EN16931_1p03.pdf
 
 In Luxembourg, it has been mandatory since this year to process all invoices via Peppol:
 
@@ -120,8 +123,8 @@ To pass pre-defined line ids, this is the way to go:
 
 ```csharp
 InvoiceDescriptor desc = InvoiceDescriptor.CreateInvoice("471102", new DateTime(2013, 6, 5), CurrencyCodes.EUR, "GE2020211-471102");
-desc.AddTradeLineItem(lineId: "0001", "Item name", "Detail description", QuantityCodes.C62, ....);
-desc.AddTradeLineItem(lineId: "0002", "Item name", "Detail description", QuantityCodes.C62, ....);
+desc.AddTradeLineItem(lineID: "0001", "Item name", "Detail description", QuantityCodes.C62, ....);
+desc.AddTradeLineItem(lineID: "0002", "Item name", "Detail description", QuantityCodes.C62, ....);
 ```
 
 which will generate an invoice with two trade line items, with the first one as number '0001' and the second one as number '0002'.
@@ -132,7 +135,7 @@ One trade product can have one or more product characteristics, which can contai
 
  ```csharp
 // you can optionally add product characteristics:
- desc.TradeLineItems.Add(new TradeLineItem()
+ desc.TradeLineItems.Add(new TradeLineItem("0003")
 {
     ApplicableProductCharacteristics = new List<ApplicableProductCharacteristic>
     {
@@ -153,7 +156,25 @@ The library allows to add special references to an invoice which are pretty rare
 desc.SpecifiedProcuringProject = new SpecifiedProcuringProject {Name = "Projekt AB-312", ID = "AB-312"};
 
 // you can optionally reference a contract:
-desc.ContractReferencedDocument = new ContractReferencedDocument {ID = "AB-312-1", Date = new DateTime(2013,1,1)};
+desc.ContractReferencedDocument = new ContractReferencedDocument {ID = "AB-312-1", IssueDateTime = new DateTime(2013,1,1)};
+```
+
+## Invoice Line Status
+The library supports setting a status code and a reason for each line item. This feature helps clarifying whether a line item contributes to the invoice total or is for information only. It can be useful for marking items as informational, subtotal lines, or fully processed items, adding context to each invoiced item.
+```csharp
+// Example: Adding a trade line item with a specific status and reason
+TradeLineItem tradeLineItem3 = desc.AddTradeLineItem(
+    name: "Abschlagsrechnung vom 01.01.2024",
+    billedQuantity: -1m,
+    unitCode: QuantityCodes.C62,
+    netUnitPrice: 500,
+    categoryCode: TaxCategoryCodes.S,
+    taxPercent: 19.0m,
+    taxType: TaxTypes.VAT
+);
+
+// Set a line status code and reason code to indicate that this line is for documentation only
+tradeLineItem3.SetLineStatus(LineStatusCodes.DocumentationClaim, LineStatusReasonCodes.INFORMATION);
 ```
 
 ## Storing the invoice
@@ -242,7 +263,7 @@ Furthermore, XRechnung comes with some special features. One of these features i
 InvoiceDescriptor desc = _createInvoice();
 byte[] data = System.IO.File.ReadAllBytes("my-calculation.xlsx");
 desc.AddAdditionalReferencedDocument(
-    issuerAssignedID: "calculation-sheet",
+    id: "calculation-sheet",
     typeCode: AdditionalReferencedDocumentTypeCode.ReferenceDocument,
     name: "Calculation as the basis for the invoice",
     attachmentBinaryObject: data,
@@ -300,25 +321,34 @@ descriptor.Save("zugferd-v23.xml", ZUGFeRDVersion.Version23, Profile.Basic); // 
 descriptor.Save("zugferd-v23-xrechnung.xml", ZUGFeRDVersion.Version23, Profile.XRechnung); // save as version 2.3, profile XRechnung
 ```
 
-# Extracting XML attachments from PDF files
-I am frequently asked how to extract the ZUGFeRD / Factur-X / XRechnung attachment from existing PDF files.
 
-There is a nice article on Stack Overflow on how this can be achieved using itextsharp:
+# Working with ZUGFeRD PDF files
+The ZUGFeRD-csharp component has a sister component which relies on [PDFSharp](https://github.com/empira/PDFsharp) to read and write PDF files.
+It is still in alpha and needs support for making the PDF more compliant.
 
-https://stackoverflow.com/a/6334252
+Downlaod the alpha version here:
 
-and this one covers the same with `itext7` which is the successor of `itextsharp`:
+[![NuGet](https://img.shields.io/nuget/v/ZUGFeRD.PDF-csharp?color=blue)](https://www.nuget.org/packages/ZUGFeRD.PDF-csharp/)
 
-https://stackoverflow.com/a/37804285
+The component makes loading the invoice from a pdf as easy as this:
 
-# Writing XML attachments to PDF files
-It is also possible to add the XML ZUGFeRD or XRechnung attachment to PDF files using `itextsharp`.
-You find information about this here:
+```csharp
+InvoiceDescriptor desc = await InvoicePdfProcessor.LoadFromPdfAsync("invoice.pdf");
+```
 
-https://stackoverflow.com/questions/70597318/af-reference-to-file-embedded-into-a-pdf-with-itextsharp
+Converting a PDF file to a ZUGFeRD PDF/A is almost as simple:
+
+```csharp
+InvoiceDescriptor descriptor = InvoiceDescriptor.CreateInvoice("471102", new DateTime(2018, 03, 05), CurrencyCodes.EUR);
+...
+
+await InvoicePdfProcessor.SaveToPdfAsync("zugferd-invoice.pdf", ZUGFeRDVersion.Version23, Profile.Comfort, ZUGFeRDFormats.CII, "input-invoice.pdf", descriptor);
+```
+
 
 # Thanks
 
+* First of all I'd like to thank the numerous contributors working on new features and removing bugs
 * The solution is used in CKS.DMS and supported by CKSolution: 
   https://www.cksolution.de
 * ZUGFeRD 2.1 implementation was done by https://netco-solution.de and used in netCo.Butler

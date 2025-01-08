@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -41,7 +41,7 @@ namespace s2industries.ZUGFeRD
 
         /// <summary>
         /// The Comfort profile corresponds to the European standard EN 16931.
-        /// 
+        ///
         /// Invoices in this profile contain all necessary information and thus are valid electronic invoices.
         /// </summary>
         Comfort = 2,
@@ -77,17 +77,17 @@ namespace s2industries.ZUGFeRD
 
         /// <summary>
         /// The e-reporting (https://www.impots.gouv.fr/e-reporting-la-transmission-de-donnees-de-transaction-ladministration)
-        /// concern companies subject to VAT in France and trading with private individuals and, more generally, non-taxable persons 
-        /// (business to consumer or BtoC), with companies not established on French territory (i.e. taxable persons who do not have 
+        /// concern companies subject to VAT in France and trading with private individuals and, more generally, non-taxable persons
+        /// (business to consumer or BtoC), with companies not established on French territory (i.e. taxable persons who do not have
         /// an establishment, domicile or habitual residence in France).
         /// </summary>
         EReporting = 128,
     }
 
 
-    internal static class ProfileExtensions
+    public static class ProfileExtensions
     {
-        public static Profile FromString(this Profile _, string s)
+        internal static Profile FromString(this Profile _, string s)
         {
             var profileMap = new Dictionary<string, Profile>(StringComparer.OrdinalIgnoreCase)
             {
@@ -135,7 +135,7 @@ namespace s2industries.ZUGFeRD
         } // !FromString()
 
 
-        public static string EnumToString(this Profile profile, ZUGFeRDVersion version)
+        internal static string EnumToString(this Profile profile, ZUGFeRDVersion version)
         {
             switch (version)
             {
@@ -150,7 +150,7 @@ namespace s2industries.ZUGFeRD
                 case ZUGFeRDVersion.Version20:
                     switch (profile)
                     {
-                        case Profile.Minimum: return "urn:zugferd.de:2p0:minimum";                        
+                        case Profile.Minimum: return "urn:zugferd.de:2p0:minimum";
                         case Profile.Basic: return "urn:cen.eu:en16931:2017#compliant#urn:zugferd.de:2p0:basic";
                         case Profile.BasicWL: return "urn:zugferd.de:2p0:basicwl";
                         case Profile.Comfort: return "urn:cen.eu:en16931:2017";
@@ -179,7 +179,7 @@ namespace s2industries.ZUGFeRD
                             }
                         case Profile.EReporting: return "urn.cpro.gouv.fr:1p0:ereporting";
                         default: throw new Exception("Unsupported profile for ZUGFeRD version 21");
-                    }                    
+                    }
                 default:
                     // return "";
                     throw new UnsupportedException("New ZUGFeRDVersion '" + version + "' defined but not implemented!");
@@ -192,10 +192,17 @@ namespace s2industries.ZUGFeRD
             switch (profile)
             {
                 case Profile.BasicWL: return "BASIC WL";
+                case Profile.Comfort:
                 case Profile.XRechnung1:
                 case Profile.XRechnung: return "EN 16931";
-                default: return profile.ToString();
+                default: return profile.ToString().ToUpper();
             }
         } // !GetXMPName()
+
+
+        internal static bool In(this Profile profile, params Profile[] allowedProfiles)
+        {
+            return allowedProfiles.Contains(profile);
+        }
     }
 }

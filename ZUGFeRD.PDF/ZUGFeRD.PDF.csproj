@@ -1,0 +1,53 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net461;net480;net8.0</TargetFrameworks>
+	<Authors>Stephan Stapel</Authors>
+    <Company>s2 industries</Company>
+	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>ZUGFeRD.PDF-csharp</PackageId>
+    <PackageReadmeFile></PackageReadmeFile>
+    <RepositoryUrl>https://github.com/stephanstapel/ZUGFeRD-csharp/</RepositoryUrl>
+    <UserSecretsId>ceeaa3c6-7c48-4061-b8f6-da26a9de5879</UserSecretsId>
+    <RepositoryType>git</RepositoryType>
+    <IncludeSymbols>True</IncludeSymbols>
+	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	<PublishRepositoryUrl>true</PublishRepositoryUrl>
+	<EmbedUntrackedSources>true</EmbedUntrackedSources>
+	<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>	
+    <RootNamespace>s2industries.ZUGFeRD.PDF</RootNamespace>	
+    <Version>16.1.1</Version>	
+    <PackageReleaseNotes>16.1.0: first full working version
+16.0.0: Initial version</PackageReleaseNotes>	
+    <AssemblyName>s2industries.ZUGFeRD.PDF</AssemblyName>	
+    <AssemblyVersion>16.1.1</AssemblyVersion>	
+    <Description>ZUGFeRD and it's successor Factur-X/ XRechnung are initiatives from German (respectively European) government to foster electronic invoices.
+It is based on using PDF/A-3 to store invoices along with embedded xml descriptor for easy processing.
+A special favor is the so-called XRechnung which is also supported by this library.
+
+This library allows to load and create PDF/A files.
+</Description>	
+    <Copyright>Stephan Stapel, s2 industries, 2024</Copyright>	
+    <PackageProjectUrl>https://github.com/stephanstapel/ZUGFeRD-csharp/</PackageProjectUrl>	
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>	
+    <SignAssembly>True</SignAssembly>	
+    <AssemblyOriginatorKeyFile>ZUGFeRD.PDF.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\PdfMedatadataTemplate.xml" />
+    <None Remove="Resources\sRGB-IEC61966-2.1.icc" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\PdfMedatadataTemplate.xml" />
+    <EmbeddedResource Include="Resources\sRGB-IEC61966-2.1.icc" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="PDFsharp-extended" Version="1.2.0-preview-1" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.0" />
+    <PackageReference Include="ZUGFeRD-csharp" Version="16.1.0" />
+  </ItemGroup>
+
+</Project>

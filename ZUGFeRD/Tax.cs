@@ -17,9 +17,6 @@
  * under the License.
  */
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace s2industries.ZUGFeRD
 {
@@ -28,22 +25,37 @@ namespace s2industries.ZUGFeRD
     /// </summary>
     public class Tax
     {
+        private decimal? _taxAmount;
+
         /// <summary>
         /// Returns the amount of the tax (Percent * BasisAmount)
         /// 
         /// This information is calculated live.
         /// </summary>
+        [Obsolete("Please note that TaxAmount needs to be set manually beginning with version 17.0, automatic calculation will be removed")]
         public decimal TaxAmount
         {
             get
             {
-                return System.Math.Round(0.01m * this.Percent * this.BasisAmount, 2, MidpointRounding.AwayFromZero);
+                if (_taxAmount.HasValue)
+                {
+                    return _taxAmount.Value;
+                }
+                else
+                {
+                    return System.Math.Round((0.01m * this.Percent) * this.BasisAmount, 2, MidpointRounding.AwayFromZero);
+                }
+            }
+            set
+            {
+                _taxAmount = value;
             }
         }
 
         /// <summary>
         /// VAT category taxable amount
-        /// </summary>
+        /// </summary>        
+        [Obsolete("Please note that TaxAmount needs to be written manually beginning with version 17.0")]
         public decimal BasisAmount { get; set; }
 
         /// <summary>
@@ -68,6 +80,10 @@ namespace s2industries.ZUGFeRD
         /// </summary>
         public decimal? AllowanceChargeBasisAmount { get; set; }
 
+        /// <summary>
+        /// A monetary value used as the line total basis on which this trade related tax, levy or duty is calculated
+        /// </summary>
+        public decimal? LineTotalBasisAmount { get; set; }
 
         /// <summary>
         /// ExemptionReasonCode for no Tax

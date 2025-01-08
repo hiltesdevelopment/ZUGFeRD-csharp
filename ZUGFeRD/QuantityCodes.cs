@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -25,14 +25,14 @@ namespace s2industries.ZUGFeRD
 {
     /// <summary>
     /// ISO Quantity Codes
-    /// 
+    ///
     /// Official reference:
     /// https://unece.org/trade/uncefact/cl-recommendations
     /// (Rec 20)
-    /// 
+    ///
     /// See ee also
     /// http://www.robert-kuhlemann.de/iso_masseinheiten.htm
-    /// 
+    ///
     /// Rec 21 source:
     /// https://docs.peppol.eu/poacc/billing/3.0/codelist/UNECERec20/
     /// (starting with X, length of 3)
@@ -47,10 +47,42 @@ namespace s2industries.ZUGFeRD
         /// <summary>
         /// Eins (Stück)
         /// Abkürzung: Stk.
-        /// 
+        ///
         /// Previously, PCE was also used. This has been removed.
         /// </summary>
         C62,
+
+		/// <summary>
+		/// centigram; Zentigramm
+		/// </summary>
+		CGM,
+
+		/// <summary>
+        /// hundred leave; 100 Blätter
+        /// A unit of count defining the number of leaves, expressed in units of one hundred leaves.
+		/// </summary>
+		CLF,
+
+        /// <summary>
+        /// centilitre
+        /// </summary>
+		CLT,
+
+        /// <summary>
+        /// square centimetre
+        /// </summary>
+        CMK,
+
+        /// <summary>
+        /// cubic centimetre
+        /// </summary>
+        CMQ,
+
+        /// <summary>
+        /// hundred pack
+        /// A unit of count defining the number of hundred-packs (hundred-pack: set of one hundred items packaged together).
+        /// </summary>
+        CNP,
 
         /// <summary>
         /// Tag
@@ -59,16 +91,41 @@ namespace s2industries.ZUGFeRD
         DAY,
 
         /// <summary>
+        /// decilitre
+        /// </summary>
+        DLT,
+
+        /// <summary>
+        /// square decimetre
+        /// </summary>
+        DMK,
+
+        /// <summary>
+        /// cubic decimetre
+        /// </summary>
+        DMQ,
+
+        /// <summary>
+        /// decimetre
+        /// </summary>
+        DMT,
+
+        /// <summary>
         /// Piece: A unit of count defining the number of pieces (piece: a single item, article or exemplar).
         /// </summary>
         /// <seealso cref="QuantityCodes.C62"/>
         H87,
 
         /// <summary>
-        /// Hektar
-        /// Abkürzung: ha
-        /// </summary>        
-        HAR,
+        /// square hectometre
+        /// Abbreviation: ha
+        /// </summary>
+        H18,
+
+        /// <summary>
+        /// hectolitre
+        /// </summary>
+        HLT,
 
         /// <summary>
         /// Stunde
@@ -77,10 +134,21 @@ namespace s2industries.ZUGFeRD
         HUR,
 
         /// <summary>
+        /// person
+        /// A unit of count defining the number of persons.
+        /// </summary>
+        IE,
+
+        /// <summary>
         /// Kilogramm
         /// Abkürzung: kg
         /// </summary>
         KGM,
+
+        /// <summary>
+        /// Hundred
+        /// </summary>
+        CEN,
 
         /// <summary>
         /// Zentimeter
@@ -95,13 +163,7 @@ namespace s2industries.ZUGFeRD
         KMT,
 
         /// <summary>
-        /// Kilometer
-        /// Abkürzung: km (Rec20r16)
-        /// </summary>
-        KTM,
-
-        /// <summary>
-        /// Kilowattstune
+        /// Kilowattstunde
         /// Abkürzung: kWh
         /// </summary>
         KWH,
@@ -138,7 +200,7 @@ namespace s2industries.ZUGFeRD
 
         /// <summary>
         /// Millimeter
-        /// Abkürzung: mm 
+        /// Abkürzung: mm
         /// </summary>
         MMT,
 
@@ -150,7 +212,7 @@ namespace s2industries.ZUGFeRD
 
         /// <summary>
         /// Kubikmeter
-        /// Abkürzung: m^3 
+        /// Abkürzung: m^3
         /// </summary>
         MTQ,
 
@@ -167,10 +229,61 @@ namespace s2industries.ZUGFeRD
         MWH,
 
         /// <summary>
+        /// Square Metre Day
+        /// </summary>
+        MKD,
+
+        /// <summary>
+        /// Square Metre Month
+        /// </summary>
+        MKM,
+
+        /// <summary>
+        /// Square Metre Week
+        /// </summary>
+        MKW,
+
+        /// <summary>
+        /// cubic millimetre
+        /// </summary>
+        MMQ,
+
+        /// <summary>
+        /// Cubic Metre Day
+        /// </summary>
+        MQD,
+
+        /// <summary>
+        /// cubic metre per hour
+        /// </summary>
+        MQH,
+
+        /// <summary>
+        /// Cubic Metre Month
+        /// </summary>
+        MQM,
+
+        /// <summary>
+        /// cubic metre per second
+        /// </summary>
+        MQS,
+
+        /// <summary>
+        /// Cubic Metre Week
+        /// </summary>
+        MQW,
+
+        /// <summary>
         /// Anzahl Artikel
         /// Abkürzung: Anz.
         /// </summary>
         NAR,
+
+        /// <summary>
+        /// number of packs
+        /// A unit of count defining the number of packs (pack: a collection of objects packaged together).
+        /// </summary>
+        NMP,
 
         /// <summary>
         /// Prozent
@@ -184,7 +297,7 @@ namespace s2industries.ZUGFeRD
         /// </summary>
         /// <remarks>
         /// A unit of count defining the number of pairs (pair: item described by two's).
-        /// 
+        ///
         /// Previously, NPR was used to indicate pairs. This has been removed.
         /// </remarks>
         PR,
@@ -215,15 +328,20 @@ namespace s2industries.ZUGFeRD
 
         /// <summary>
         /// Jahr
-        /// Abkürzung: Jahr(e) 
+        /// Abkürzung: Jahr(e)
         /// </summary>
         ANN,
 
         /// <summary>
         /// Sekunde
-        /// Abkürzung: Sekunde(n) 
+        /// Abkürzung: Sekunde(n)
         /// </summary>
         SEC,
+
+        /// <summary>
+        /// Ten pack
+        /// </summary>
+        TP,
 
         /// <summary>
         /// Bündel
@@ -381,7 +499,7 @@ namespace s2industries.ZUGFeRD
         /// <summary>
         /// Block
         /// </summary>
-        D64,
+        XOK,
 
         /// <summary>
         ///  Tray
@@ -412,7 +530,78 @@ namespace s2industries.ZUGFeRD
         /// <remarks>
         /// A quantity of allowance of food allotted to, or enough for, one person.
         /// </remarks>
-        PTN
+        PTN,
+
+        /// <summary>
+        /// microcurie
+        /// Abkürzung: µCi
+        /// </summary>
+        M5,
+
+        /// <summary>
+        /// microlitre
+        /// Abkürzung: µl
+        /// </summary>
+        _4G,
+
+        /// <summary>
+        /// megabecquerel
+        /// Abkürzung: MBq
+        /// </summary>
+        _4N,
+
+        /// <summary>
+        /// microgram
+        /// Abkürzung: µg
+        /// </summary>
+        MC,
+
+        /// <summary>
+        /// micromole
+        /// Abkürzung: µmol
+        /// </summary>
+        FH,
+
+        /// <summary>
+        /// becquerel
+        /// Abkürzung: Bq
+        /// </summary>
+        BQL,
+
+        /// <summary>
+        /// curie
+        /// Abkürzung: Ci
+        /// </summary>
+        CUR,
+
+        /// <summary>
+        /// millicurie
+        /// Abkürzung: mCi
+        /// </summary>
+        MCU,
+
+        /// <summary>
+        /// milligram
+        /// Abkürzung: mg
+        /// </summary>
+        MGM,
+
+        /// <summary>
+        /// millilitre
+        /// Abkürzung: ml
+        /// </summary>
+        MLT,
+
+        /// <summary>
+        /// nanomole
+        /// Abkürzung: nmol
+        /// </summary>
+        Z9,
+
+        /// <summary>
+        /// Packet
+        /// </summary>
+        XPA
     }
 
 
@@ -422,7 +611,14 @@ namespace s2industries.ZUGFeRD
         {
             try
             {
-                return (QuantityCodes)Enum.Parse(typeof(QuantityCodes), s);
+                if (!string.IsNullOrWhiteSpace(s) && char.IsDigit(s[0]))
+                {
+                    return (QuantityCodes)Enum.Parse(typeof(QuantityCodes), "_" + s);
+                }
+                else
+                {
+                    return (QuantityCodes)Enum.Parse(typeof(QuantityCodes), s);
+                }
             }
             catch
             {
@@ -435,6 +631,18 @@ namespace s2industries.ZUGFeRD
                 {
                     return QuantityCodes.C62;
                 }
+                else if (s == "KTM")
+                {
+                    return QuantityCodes.KMT;
+                }
+                else if (s == "HAR")
+                {
+                    return QuantityCodes.H18;
+                }
+                else if (s == "D64")
+                {
+                    return QuantityCodes.XOK;
+                }
 
                 return QuantityCodes.Unknown;
             }
@@ -443,7 +651,7 @@ namespace s2industries.ZUGFeRD
 
         public static string EnumToString(this QuantityCodes c)
         {
-            return c.ToString("g");
+            return c.ToString("g").Replace("_","");
         } // !ToString()
     }
 }
