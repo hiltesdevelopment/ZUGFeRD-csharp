@@ -574,7 +574,7 @@ namespace s2industries.ZUGFeRD
 
 
         public void SetBuyer(string name, string postcode, string city, string street, CountryCodes country, string id = null,
-                             GlobalID globalID = null, string receiver = "", LegalOrganization legalOrganization = null)
+                             GlobalID globalID = null, string receiver = "", LegalOrganization legalOrganization = null, string countrySubdivisonName = null, string addressLine3 = null)
         {
             this.Buyer = new Party()
             {
@@ -584,6 +584,8 @@ namespace s2industries.ZUGFeRD
                 ContactName = receiver,
                 City = city,
                 Street = street,
+                CountrySubdivisionName = countrySubdivisonName,
+                AddressLine3 = addressLine3,
                 Country = country,
                 GlobalID = globalID,
                 SpecifiedLegalOrganization = legalOrganization,
@@ -592,7 +594,7 @@ namespace s2industries.ZUGFeRD
 
 
         public void SetSeller(string name, string postcode, string city, string street, CountryCodes country, string id = null,
-                              GlobalID globalID = null, LegalOrganization legalOrganization = null, string description = null)
+                              GlobalID globalID = null, LegalOrganization legalOrganization = null, string description = null, string countrySubdivisonName = null, string addressLine3 = null)
         {
             this.Seller = new Party()
             {
@@ -601,6 +603,8 @@ namespace s2industries.ZUGFeRD
                 Postcode = postcode,
                 City = city,
                 Street = street,
+                CountrySubdivisionName = countrySubdivisonName,
+                AddressLine3 = addressLine3,
                 Country = country,
                 GlobalID = globalID,
                 SpecifiedLegalOrganization = legalOrganization,
@@ -984,46 +988,12 @@ namespace s2industries.ZUGFeRD
         /// </summary>
         /// <param name="basisAmount"></param>
         /// <param name="percent">Tax rate where the tax belongs to</param>
-        /// <param name="typeCode"></param>
-        /// <param name="categoryCode"></param>
-        /// <param name="allowanceChargeBasisAmount"></param>
-        /// <param name="exemptionReasonCode"></param>
-        /// <param name="exemptionReason"></param>
-        [Obsolete("Please note that TaxAmount needs to be written manually beginning with version 17.0. Please use the function that includes the taxAmount parameter")]
-        public void AddApplicableTradeTax(decimal basisAmount, decimal percent, TaxTypes typeCode, TaxCategoryCodes? categoryCode = null, decimal? allowanceChargeBasisAmount = null, TaxExemptionReasonCodes? exemptionReasonCode = null, string exemptionReason = null)
-        {
-            Tax tax = new Tax()
-            {
-                BasisAmount = basisAmount,
-                Percent = percent,
-                TypeCode = typeCode,
-                AllowanceChargeBasisAmount = allowanceChargeBasisAmount,
-                ExemptionReasonCode = exemptionReasonCode,
-                ExemptionReason = exemptionReason
-            };
-
-            if ((categoryCode != null) && (categoryCode.Value != TaxCategoryCodes.Unknown))
-            {
-                tax.CategoryCode = categoryCode;
-            }
-
-            this.Taxes.Add(tax);
-        } // !AddApplicableTradeTax()
-
-
-        /// <summary>
-        /// Add information about VAT and apply to the invoice line items for goods and services on the invoice.
-        ///
-        /// This tax is added per VAT/ tax rate.
-        /// </summary>
-        /// <param name="basisAmount"></param>
-        /// <param name="percent">Tax rate where the tax belongs to</param>
         /// <param name="taxAmount">Tax amount, i.e. basisAmount * percent</param>
         /// <param name="typeCode"></param>
         /// <param name="categoryCode"></param>
         /// <param name="allowanceChargeBasisAmount"></param>
         /// <param name="exemptionReasonCode"></param>
-        /// <param name="exemptionReason"></param>        
+        /// <param name="exemptionReason"></param>
         /// <param name="lineTotalBasisAmount">A monetary value used as the line total basis on which this trade related tax, levy or duty is calculated</param>
         public void AddApplicableTradeTax(decimal basisAmount,
             decimal percent,
@@ -1196,7 +1166,8 @@ namespace s2industries.ZUGFeRD
         /// <param name="buyerAssignedID"></param>
         /// <param name="deliveryNoteID"></param>
         /// <param name="deliveryNoteDate"></param>
-        /// <param name="buyerOrderID"></param>
+        /// <param name="buyerOrderLineID"></param>
+        /// <param name="buyerOrderID">only Extended</param>
         /// <param name="buyerOrderDate"></param>
         /// <param name="billingPeriodStart"></param>
         /// <param name="billingPeriodEnd"></param>
@@ -1216,7 +1187,7 @@ namespace s2industries.ZUGFeRD
                                      GlobalID id = null,
                                      string sellerAssignedID = "", string buyerAssignedID = "",
                                      string deliveryNoteID = "", DateTime? deliveryNoteDate = null,
-                                     string buyerOrderID = "", DateTime? buyerOrderDate = null,
+                                     string buyerOrderLineID = "", string buyerOrderID = "", DateTime? buyerOrderDate = null,
                                      DateTime? billingPeriodStart = null, DateTime? billingPeriodEnd = null)
         {
             return AddTradeLineItem(lineID: _getNextLineId(),
@@ -1237,7 +1208,8 @@ namespace s2industries.ZUGFeRD
                              buyerAssignedID: buyerAssignedID,
                              deliveryNoteID: deliveryNoteID,
                              deliveryNoteDate: deliveryNoteDate,
-                             buyerOrderID: buyerOrderID,
+							 buyerOrderLineID: buyerOrderLineID,
+                             buyerOrderID: buyerOrderID, // Extended!
                              buyerOrderDate: buyerOrderDate,
                              billingPeriodStart: billingPeriodStart,
                              billingPeriodEnd: billingPeriodEnd);
@@ -1264,7 +1236,7 @@ namespace s2industries.ZUGFeRD
                                      GlobalID id = null,
                                      string sellerAssignedID = "", string buyerAssignedID = "",
                                      string deliveryNoteID = "", DateTime? deliveryNoteDate = null,
-                                     string buyerOrderID = "", DateTime? buyerOrderDate = null,
+                                     string buyerOrderLineID = "", string buyerOrderID = "", DateTime? buyerOrderDate = null,
                                      DateTime? billingPeriodStart = null, DateTime? billingPeriodEnd = null)
         {
             if (String.IsNullOrWhiteSpace(lineID))
@@ -1309,9 +1281,9 @@ namespace s2industries.ZUGFeRD
                 newItem.SetDeliveryNoteReferencedDocument(deliveryNoteID, deliveryNoteDate);
             }
 
-            if (!String.IsNullOrWhiteSpace(buyerOrderID) || buyerOrderDate.HasValue)
+            if (!String.IsNullOrWhiteSpace(buyerOrderLineID) || buyerOrderDate.HasValue || !String.IsNullOrWhiteSpace(buyerOrderID))
             {
-                newItem.SetOrderReferencedDocument(buyerOrderID, buyerOrderDate);
+                newItem.SetOrderReferencedDocument(buyerOrderID, buyerOrderDate, buyerOrderLineID);
             }
 
             this.TradeLineItems.Add(newItem);
@@ -1319,6 +1291,13 @@ namespace s2industries.ZUGFeRD
         } // !AddTradeLineItem()
 
 
+        /// <summary>
+        /// Sets up the payment means.
+        /// </summary>
+        /// <param name="paymentCode">Payment means type code.</param>
+        /// <param name="information">Additional information.</param>
+        /// <param name="identifikationsnummer">SEPA creditor identifier.</param>
+        /// <param name="mandatsnummer">SEPA mandate reference.</param>
         public void SetPaymentMeans(PaymentMeansTypeCodes paymentCode, string information = "", string identifikationsnummer = null, string mandatsnummer = null)
         {
             this.PaymentMeans = new PaymentMeans
@@ -1332,7 +1311,7 @@ namespace s2industries.ZUGFeRD
 
 
         /// <summary>
-        ///     Sets up the payment means for SEPA direct debit.
+        /// Sets up the payment means for SEPA direct debit.
         /// </summary>
         public void SetPaymentMeansSepaDirectDebit(string sepaCreditorIdentifier, string sepaMandateReference, string information = "")
         {
