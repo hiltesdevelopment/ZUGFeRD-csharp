@@ -258,13 +258,13 @@ namespace s2industries.ZUGFeRD
                 #region SpecifiedLineTradeAgreement (Basic, Comfort, Extended, XRechnung)
                 //Eine Gruppe von betriebswirtschaftlichen Begriffen, die Informationen über den Preis für die in der betreffenden Rechnungsposition in Rechnung gestellten Waren und Dienstleistungen enthält
 
-                if (new Profile[] { Profile.Basic, Profile.Comfort, Profile.Extended, Profile.XRechnung, Profile.XRechnung1 }.Contains(descriptor.Profile))
+                if (descriptor.Profile.In(Profile.Basic, Profile.Comfort, Profile.Extended, Profile.XRechnung, Profile.XRechnung1))
                 {
                     Writer.WriteStartElement("ram", "SpecifiedLineTradeAgreement", Profile.Basic | Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
 
                     #region BuyerOrderReferencedDocument (Comfort, Extended, XRechnung)
                     //Detailangaben zur zugehörigen Bestellung
-                    if (tradeLineItem.BuyerOrderReferencedDocument != null)
+                    if (tradeLineItem.BuyerOrderReferencedDocument != null && (!string.IsNullOrWhiteSpace(tradeLineItem.BuyerOrderReferencedDocument.LineID) || descriptor.Profile == Profile.Extended))
                     {
                         Writer.WriteStartElement("ram", "BuyerOrderReferencedDocument", Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
 
@@ -430,7 +430,7 @@ namespace s2industries.ZUGFeRD
 
                 if (tradeLineItem.DeliveryNoteReferencedDocument != null)
                 {
-                    Writer.WriteStartElement("ram", "DeliveryNoteReferencedDocument", ALL_PROFILES ^ (Profile.XRechnung1 | Profile.XRechnung)); // this violates CII-SR-175 for XRechnung 3
+                    Writer.WriteStartElement("ram", "DeliveryNoteReferencedDocument", Profile.Extended); // this violates CII-SR-175 for XRechnung 3
                     Writer.WriteOptionalElementString("ram", "IssuerAssignedID", tradeLineItem.DeliveryNoteReferencedDocument.ID);
 
                     if (tradeLineItem.DeliveryNoteReferencedDocument.IssueDateTime.HasValue)
@@ -492,7 +492,7 @@ namespace s2industries.ZUGFeRD
 
                 #region SpecifiedTradeAllowanceCharge (Basic, Comfort, Extended, XRechnung)
                 //Abschläge auf Ebene der Rechnungsposition (Basic, Comfort, Extended, XRechnung)
-                if (new Profile[] { Profile.Basic, Profile.Comfort, Profile.Extended, Profile.XRechnung1, Profile.XRechnung }.Contains(descriptor.Profile))
+                if (descriptor.Profile.In(Profile.Basic, Profile.Comfort, Profile.Extended, Profile.XRechnung1, Profile.XRechnung))
                 {
                     if (tradeLineItem.GetSpecifiedTradeAllowanceCharges().Count > 0)
                     {
@@ -517,7 +517,7 @@ namespace s2industries.ZUGFeRD
                             #region BasisAmount
                             if (specifiedTradeAllowanceCharge.BasisAmount.HasValue)
                             {
-                                Writer.WriteStartElement("ram", "BasisAmount", profile: Profile.Extended | Profile.XRechnung | Profile.Comfort);
+                                Writer.WriteStartElement("ram", "BasisAmount", profile: Profile.Basic| Profile.Comfort | Profile.Extended | Profile.XRechnung);
                                 Writer.WriteValue(_formatDecimal(specifiedTradeAllowanceCharge.BasisAmount.Value, 2));
                                 Writer.WriteEndElement();
                             }
@@ -529,7 +529,7 @@ namespace s2industries.ZUGFeRD
                             Writer.WriteEndElement();
                             #endregion
 
-                            Writer.WriteOptionalElementString("ram", "Reason", specifiedTradeAllowanceCharge.Reason, Profile.Extended | Profile.XRechnung | Profile.Comfort);
+                            Writer.WriteOptionalElementString("ram", "Reason", specifiedTradeAllowanceCharge.Reason, Profile.Basic| Profile.Comfort | Profile.Extended | Profile.XRechnung);
                             Writer.WriteEndElement(); // !ram:SpecifiedTradeAllowanceCharge
                         }
                     }
@@ -657,7 +657,7 @@ namespace s2industries.ZUGFeRD
                 Writer.WriteElementString("ram", "IssuerAssignedID", this.Descriptor.OrderNo);
                 if (this.Descriptor.OrderDate.HasValue)
                 {
-                    Writer.WriteStartElement("ram", "FormattedIssueDateTime", ALL_PROFILES ^ (Profile.XRechnung1 | Profile.XRechnung));
+                    Writer.WriteStartElement("ram", "FormattedIssueDateTime", Profile.Extended);
                     Writer.WriteStartElement("qdt", "DateTimeString");
                     Writer.WriteAttributeString("format", "102");
                     Writer.WriteValue(_formatDate(this.Descriptor.OrderDate.Value));
@@ -756,7 +756,7 @@ namespace s2industries.ZUGFeRD
             #region DeliveryNoteReferencedDocument
             if (this.Descriptor.DeliveryNoteReferencedDocument != null)
             {
-                Writer.WriteStartElement("ram", "DeliveryNoteReferencedDocument");
+                Writer.WriteStartElement("ram", "DeliveryNoteReferencedDocument", Profile.Extended);
                 Writer.WriteElementString("ram", "IssuerAssignedID", this.Descriptor.DeliveryNoteReferencedDocument.ID);
 
                 if (this.Descriptor.DeliveryNoteReferencedDocument.IssueDateTime.HasValue)
@@ -1014,7 +1014,7 @@ namespace s2industries.ZUGFeRD
                     break;
                 case Profile.XRechnung:
                     if (Descriptor.GetTradePaymentTerms().Count > 0 || !string.IsNullOrWhiteSpace(Descriptor.PaymentMeans?.SEPAMandateReference))
-                    {                        
+                    {
                         foreach (PaymentTerms paymentTerms in this.Descriptor.GetTradePaymentTerms())
                         {
                             Writer.WriteStartElement("ram", "SpecifiedTradePaymentTerms");
@@ -1067,7 +1067,7 @@ namespace s2industries.ZUGFeRD
                                 Writer.WriteOptionalElementString("ram", "DirectDebitMandateID", Descriptor.PaymentMeans?.SEPAMandateReference);
                             }
                             Writer.WriteEndElement();
-                        }                       
+                        }
                     }
                     break;
                 case Profile.Extended:
@@ -1109,7 +1109,7 @@ namespace s2industries.ZUGFeRD
                     }
                     break;
                 default:
-                    foreach(PaymentTerms paymentTerms in this.Descriptor.GetTradePaymentTerms())
+                    foreach (PaymentTerms paymentTerms in this.Descriptor.GetTradePaymentTerms())
                     {
                         Writer.WriteStartElement("ram", "SpecifiedTradePaymentTerms");
                         Writer.WriteOptionalElementString("ram", "Description", paymentTerms.Description, ALL_PROFILES ^ Profile.Minimum);
@@ -1389,7 +1389,7 @@ namespace s2industries.ZUGFeRD
         {
             if (legalOrganization == null)
             {
-                 return;
+                return;
             }
 
             switch (partyType)
@@ -1413,8 +1413,8 @@ namespace s2industries.ZUGFeRD
                 case PartyTypes.SalesAgentTradeParty:
                 case PartyTypes.ShipFromTradeParty:
                 case PartyTypes.UltimateShipToTradeParty:
-					if (this.Descriptor.Profile != Profile.Extended) { return; }
-					break;
+                    if (this.Descriptor.Profile != Profile.Extended) { return; }
+                    break;
                 default:
                     return;
             }
@@ -1435,13 +1435,13 @@ namespace s2industries.ZUGFeRD
                 }
             }
 
-			// filter according to https://github.com/stephanstapel/ZUGFeRD-csharp/pull/221
-			if ((this.Descriptor.Profile == Profile.Extended) ||
-				((partyType == PartyTypes.SellerTradeParty) && (this.Descriptor.Profile != Profile.Minimum)) ||
-				((partyType == PartyTypes.BuyerTradeParty) && this.Descriptor.Profile.In(Profile.Comfort, Profile.XRechnung1, Profile.XRechnung, Profile.Extended)))
-			{
-				writer.WriteOptionalElementString("ram", "TradingBusinessName", legalOrganization.TradingBusinessName, this.Descriptor.Profile);
-			}
+            // filter according to https://github.com/stephanstapel/ZUGFeRD-csharp/pull/221
+            if ((this.Descriptor.Profile == Profile.Extended) ||
+                ((partyType == PartyTypes.SellerTradeParty) && (this.Descriptor.Profile != Profile.Minimum)) ||
+                ((partyType == PartyTypes.BuyerTradeParty) && this.Descriptor.Profile.In(Profile.Comfort, Profile.XRechnung1, Profile.XRechnung, Profile.Extended)))
+            {
+                writer.WriteOptionalElementString("ram", "TradingBusinessName", legalOrganization.TradingBusinessName, this.Descriptor.Profile);
+            }
             writer.WriteEndElement();
         } // !_writeOptionalLegalOrganization()
 
@@ -1449,9 +1449,9 @@ namespace s2industries.ZUGFeRD
         private void _writeOptionalParty(ProfileAwareXmlTextWriter writer, PartyTypes partyType, Party party, Profile profile, Contact contact = null, ElectronicAddress electronicAddress = null, List<TaxRegistration> taxRegistrations = null)
         {
             if (party == null)
-			{
-				return;
-			}
+            {
+                return;
+            }
 
             switch (partyType)
             {
@@ -1571,9 +1571,9 @@ namespace s2industries.ZUGFeRD
         private void _writeOptionalContact(ProfileAwareXmlTextWriter writer, string prefix, string contactTag, Contact contact, Profile profile = Profile.Unknown)
         {
             if (contact == null)
-			{
-				return;
-			}
+            {
+                return;
+            }
 
             writer.WriteStartElement(prefix, contactTag, profile);
 

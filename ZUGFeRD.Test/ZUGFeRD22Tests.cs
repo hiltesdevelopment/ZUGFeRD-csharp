@@ -2300,14 +2300,18 @@ namespace s2industries.ZUGFeRD.Test
 
 
         [TestMethod]
-        public void TestSpecifiedTradeAllowanceCharge()
+        [DataRow(Profile.Basic)]
+        [DataRow(Profile.Comfort)]
+        [DataRow(Profile.Extended)]
+        [DataRow(Profile.XRechnung)]
+        public void TestSpecifiedTradeAllowanceCharge(Profile profile)
         {
             InvoiceDescriptor invoice = _InvoiceProvider.CreateInvoice();
 
             invoice.TradeLineItems[0].AddSpecifiedTradeAllowanceCharge(true, CurrencyCodes.EUR, 198m, 19.8m, 10m, "Discount 10%");
 
             MemoryStream ms = new MemoryStream();
-            invoice.Save(ms, ZUGFeRDVersion.Version23, Profile.Extended);
+            invoice.Save(ms, ZUGFeRDVersion.Version23, profile);
             ms.Position = 0;
 
             InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(ms);
@@ -2321,6 +2325,22 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(allowanceCharge.ChargePercentage, 10m);
             Assert.AreEqual(allowanceCharge.Reason, "Discount 10%");
         } // !SpecifiedTradeAllowanceCharge()
+
+
+        [TestMethod]
+        public void TestSpecifiedTradeAllowanceChargeNotWrittenInMinimum()
+        {
+            InvoiceDescriptor invoice = _InvoiceProvider.CreateInvoice();
+
+            invoice.TradeLineItems[0].AddSpecifiedTradeAllowanceCharge(true, CurrencyCodes.EUR, 198m, 19.8m, 10m, "Discount 10%");
+
+            MemoryStream ms = new MemoryStream();
+            invoice.Save(ms, ZUGFeRDVersion.Version23, Profile.Minimum);
+            ms.Position = 0;
+
+            InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(ms);
+            Assert.AreEqual(0, loadedInvoice.TradeLineItems[0].GetSpecifiedTradeAllowanceCharges().Count);
+        } // !TestSpecifiedTradeAllowanceChargeNotWrittenInMinimum()
 
 
         [TestMethod]
@@ -2902,5 +2922,29 @@ namespace s2industries.ZUGFeRD.Test
                 Assert.IsFalse(content.Contains($"<ram:DirectDebitMandateID>REF A-123</ram:DirectDebitMandateID>"));
             }
         } // !TestInNonDebitInvoiceTheDirectDebitFieldsShouldNotExist()
+
+
+        [TestMethod]
+        public void TestSpecifiedTradePaymentTermsDueDate()
+        {
+            string path = @"..\..\..\..\documentation\zugferd23en\Examples\2. BASIC\BASIC_Einfach\factur-x.xml";
+            path = _makeSurePathIsCrossPlatformCompatible(path);
+
+            InvoiceDescriptor desc = InvoiceDescriptor.Load(path);
+            Assert.IsTrue(desc.GetTradePaymentTerms().First().DueDate.HasValue);
+            Assert.AreEqual(new DateTime(2024, 12, 15), desc.GetTradePaymentTerms().First().DueDate.Value);
+        } // !TestSpecifiedTradePaymentTermsDueDate()
+
+
+        [TestMethod]
+        public void TestSpecifiedTradePaymentTermsDescription()
+        {
+            string path = @"..\..\..\..\documentation\zugferd23en\Examples\4. EXTENDED\EXTENDED_Warenrechnung\factur-x.xml";
+            path = _makeSurePathIsCrossPlatformCompatible(path);
+
+            InvoiceDescriptor desc = InvoiceDescriptor.Load(path);
+            Assert.IsNotNull(desc.GetTradePaymentTerms().First().Description);
+            Assert.AreEqual("Bei Zahlung innerhalb 14 Tagen gewähren wir 2,0% Skonto.", desc.GetTradePaymentTerms().First().Description);
+        } // !TestSpecifiedTradePaymentTermsDescription()
     }
 }
