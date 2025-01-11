@@ -263,8 +263,14 @@ namespace s2industries.ZUGFeRD
                     Writer.WriteStartElement("ram", "SpecifiedLineTradeAgreement", Profile.Basic | Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
 
                     #region BuyerOrderReferencedDocument (Comfort, Extended, XRechnung)
-                    //Detailangaben zur zugehörigen Bestellung
-                    if (tradeLineItem.BuyerOrderReferencedDocument != null && (!string.IsNullOrWhiteSpace(tradeLineItem.BuyerOrderReferencedDocument.LineID) || descriptor.Profile == Profile.Extended))
+                    // Detailangaben zur zugehörigen Bestellung
+                    bool hasLineID = !string.IsNullOrWhiteSpace(tradeLineItem.BuyerOrderReferencedDocument?.LineID);
+                    bool hasIssuerAssignedID = !string.IsNullOrWhiteSpace(tradeLineItem.BuyerOrderReferencedDocument?.ID);
+                    bool hasIssueDateTime = tradeLineItem.BuyerOrderReferencedDocument?.IssueDateTime != null;
+
+                    if (tradeLineItem.BuyerOrderReferencedDocument != null &&
+                        (((descriptor.Profile != Profile.Extended) && hasLineID) ||
+                         ((descriptor.Profile == Profile.Extended) && (hasLineID || hasIssuerAssignedID || hasIssueDateTime))))
                     {
                         Writer.WriteStartElement("ram", "BuyerOrderReferencedDocument", Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
 
@@ -508,7 +514,7 @@ namespace s2industries.ZUGFeRD
                             #region ChargePercentage
                             if (specifiedTradeAllowanceCharge.ChargePercentage.HasValue)
                             {
-                                Writer.WriteStartElement("ram", "CalculationPercent"); // BT-143
+                                Writer.WriteStartElement("ram", "CalculationPercent", ALL_PROFILES ^ Profile.Basic); // BT-138, BT-143
                                 Writer.WriteValue(_formatDecimal(specifiedTradeAllowanceCharge.ChargePercentage.Value, 2));
                                 Writer.WriteEndElement();
                             }
@@ -517,7 +523,7 @@ namespace s2industries.ZUGFeRD
                             #region BasisAmount
                             if (specifiedTradeAllowanceCharge.BasisAmount.HasValue)
                             {
-                                Writer.WriteStartElement("ram", "BasisAmount", profile: Profile.Basic| Profile.Comfort | Profile.Extended | Profile.XRechnung);
+                                Writer.WriteStartElement("ram", "BasisAmount", ALL_PROFILES ^ Profile.Basic); // BT-137, BT-142
                                 Writer.WriteValue(_formatDecimal(specifiedTradeAllowanceCharge.BasisAmount.Value, 2));
                                 Writer.WriteEndElement();
                             }
@@ -529,7 +535,9 @@ namespace s2industries.ZUGFeRD
                             Writer.WriteEndElement();
                             #endregion
 
-                            Writer.WriteOptionalElementString("ram", "Reason", specifiedTradeAllowanceCharge.Reason, Profile.Basic| Profile.Comfort | Profile.Extended | Profile.XRechnung);
+                            // TODO: ReasonCode, BT-140, BT-145 -> missing in TradeAllowanceCharge
+                            Writer.WriteOptionalElementString("ram", "Reason", specifiedTradeAllowanceCharge.Reason); // BT-139, BT-144
+
                             Writer.WriteEndElement(); // !ram:SpecifiedTradeAllowanceCharge
                         }
                     }
@@ -837,11 +845,10 @@ namespace s2industries.ZUGFeRD
             {
                 if (this.Descriptor.PaymentMeans != null)
                 {
-
                     if ((this.Descriptor.PaymentMeans != null) && (this.Descriptor.PaymentMeans.TypeCode != PaymentMeansTypeCodes.Unknown))
                     {
                         Writer.WriteStartElement("ram", "SpecifiedTradeSettlementPaymentMeans", Profile.BasicWL | Profile.Basic | Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
-                        Writer.WriteElementString("ram", "TypeCode", this.Descriptor.PaymentMeans.TypeCode.EnumToString());
+                        Writer.WriteElementString("ram", "TypeCode", this.Descriptor.PaymentMeans.TypeCode.EnumToString(), Profile.BasicWL | Profile.Basic | Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
                         Writer.WriteOptionalElementString("ram", "Information", this.Descriptor.PaymentMeans.Information, Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
 
                         if (this.Descriptor.PaymentMeans.FinancialCard != null)
@@ -859,11 +866,11 @@ namespace s2industries.ZUGFeRD
             {
                 foreach (BankAccount account in this.Descriptor.CreditorBankAccounts)
                 {
-                    Writer.WriteStartElement("ram", "SpecifiedTradeSettlementPaymentMeans");
+                    Writer.WriteStartElement("ram", "SpecifiedTradeSettlementPaymentMeans", Profile.BasicWL | Profile.Basic | Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
 
                     if ((this.Descriptor.PaymentMeans != null) && (this.Descriptor.PaymentMeans.TypeCode != PaymentMeansTypeCodes.Unknown))
                     {
-                        Writer.WriteElementString("ram", "TypeCode", this.Descriptor.PaymentMeans.TypeCode.EnumToString());
+                        Writer.WriteElementString("ram", "TypeCode", this.Descriptor.PaymentMeans.TypeCode.EnumToString(), Profile.BasicWL | Profile.Basic | Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
                         Writer.WriteOptionalElementString("ram", "Information", this.Descriptor.PaymentMeans.Information, Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
 
                         if (this.Descriptor.PaymentMeans.FinancialCard != null)
@@ -875,7 +882,7 @@ namespace s2industries.ZUGFeRD
                         }
                     }
 
-                    Writer.WriteStartElement("ram", "PayeePartyCreditorFinancialAccount");
+                    Writer.WriteStartElement("ram", "PayeePartyCreditorFinancialAccount", Profile.BasicWL | Profile.Basic | Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
                     Writer.WriteElementString("ram", "IBANID", account.IBAN);
                     Writer.WriteOptionalElementString("ram", "AccountName", account.Name, Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
                     Writer.WriteOptionalElementString("ram", "ProprietaryID", account.ID);
@@ -893,15 +900,15 @@ namespace s2industries.ZUGFeRD
 
                 foreach (BankAccount account in this.Descriptor.DebitorBankAccounts)
                 {
-                    Writer.WriteStartElement("ram", "SpecifiedTradeSettlementPaymentMeans"); // BG-16
+                    Writer.WriteStartElement("ram", "SpecifiedTradeSettlementPaymentMeans", Profile.BasicWL | Profile.Basic | Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung); // BG-16
 
                     if ((this.Descriptor.PaymentMeans != null) && (this.Descriptor.PaymentMeans.TypeCode != PaymentMeansTypeCodes.Unknown))
                     {
-                        Writer.WriteElementString("ram", "TypeCode", this.Descriptor.PaymentMeans.TypeCode.EnumToString());
+                        Writer.WriteElementString("ram", "TypeCode", this.Descriptor.PaymentMeans.TypeCode.EnumToString(), Profile.BasicWL | Profile.Basic | Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
                         Writer.WriteOptionalElementString("ram", "Information", this.Descriptor.PaymentMeans.Information, Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
                     }
 
-                    Writer.WriteStartElement("ram", "PayerPartyDebtorFinancialAccount");
+                    Writer.WriteStartElement("ram", "PayerPartyDebtorFinancialAccount", Profile.BasicWL | Profile.Basic | Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
                     Writer.WriteElementString("ram", "IBANID", account.IBAN);
                     Writer.WriteOptionalElementString("ram", "AccountName", account.Name, Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
                     Writer.WriteOptionalElementString("ram", "ProprietaryID", account.ID);
@@ -1088,6 +1095,7 @@ namespace s2industries.ZUGFeRD
                                 Writer.WriteStartElement("ram", "ApplicableTradePaymentDiscountTerms");
                                 _writeOptionalAmount(Writer, "ram", "BasisAmount", paymentTerms.BaseAmount, forceCurrency: false);
                                 Writer.WriteOptionalElementString("ram", "CalculationPercent", _formatDecimal(paymentTerms.Percentage));
+                                _writeOptionalAmount(Writer, "ram", "ActualDiscountAmount", paymentTerms.ActualAmount, forceCurrency: false);
                                 Writer.WriteEndElement(); // !ram:ApplicableTradePaymentDiscountTerms
                             }
                             if (paymentTerms.PaymentTermsType == PaymentTermsType.Verzug)
@@ -1095,6 +1103,7 @@ namespace s2industries.ZUGFeRD
                                 Writer.WriteStartElement("ram", "ApplicableTradePaymentPenaltyTerms");
                                 _writeOptionalAmount(Writer, "ram", "BasisAmount", paymentTerms.BaseAmount, forceCurrency: false);
                                 Writer.WriteOptionalElementString("ram", "CalculationPercent", _formatDecimal(paymentTerms.Percentage));
+                                _writeOptionalAmount(Writer, "ram", "ActualPenaltyAmount", paymentTerms.ActualAmount, forceCurrency: false);
                                 Writer.WriteEndElement(); // !ram:ApplicableTradePaymentPenaltyTerms
                             }
                         }
