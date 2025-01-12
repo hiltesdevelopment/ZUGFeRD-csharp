@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -704,6 +704,7 @@ namespace s2industries.ZUGFeRD
 
         /// <summary>
         /// Add an additional reference document
+        /// Note: LineID is only on line item-level
         /// </summary>
         /// <param name="id">Document number such as delivery note no or credit memo no</param>
         /// <param name="typeCode"></param>
@@ -712,7 +713,10 @@ namespace s2industries.ZUGFeRD
         /// <param name="referenceTypeCode">Type of the referenced document</param>
         /// <param name="attachmentBinaryObject"></param>
         /// <param name="filename"></param>
-        public void AddAdditionalReferencedDocument(string id, AdditionalReferencedDocumentTypeCode typeCode, DateTime? issueDateTime = null, string name = null, ReferenceTypeCodes referenceTypeCode = ReferenceTypeCodes.Unknown, byte[] attachmentBinaryObject = null, string filename = null)
+        /// <param name="uriID"></param>
+        public void AddAdditionalReferencedDocument(string id, AdditionalReferencedDocumentTypeCode typeCode,
+            DateTime? issueDateTime = null, string name = null, ReferenceTypeCodes referenceTypeCode = ReferenceTypeCodes.Unknown,
+            byte[] attachmentBinaryObject = null, string filename = null, string uriID = null)
         {
             this.AdditionalReferencedDocuments.Add(new AdditionalReferencedDocument()
             {
@@ -722,7 +726,8 @@ namespace s2industries.ZUGFeRD
                 Name = name,
                 AttachmentBinaryObject = attachmentBinaryObject,
                 Filename = filename,
-                TypeCode = typeCode
+                TypeCode = typeCode,
+                URIID = uriID
             });
         } // !AddAdditionalReferencedDocument()
 
@@ -740,8 +745,8 @@ namespace s2industries.ZUGFeRD
         /// <summary>
         /// Sets detailed information about the corresponding despatch advice
         /// </summary>
-        /// <param name="deliveryNoteNo"></param>
-        /// <param name="deliveryNoteDate"></param>
+        /// <param name="despatchAdviceNo"></param>
+        /// <param name="despatchAdviceDate"></param>
         public void SetDespatchAdviceReferencedDocument(string despatchAdviceNo, DateTime? despatchAdviceDate = null)
         {
             this.DespatchAdviceReferencedDocument = new DespatchAdviceReferencedDocument()
@@ -813,15 +818,19 @@ namespace s2industries.ZUGFeRD
         /// <param name="currency">Curency of the allowance</param>
         /// <param name="actualAmount">Actual allowance charge amount</param>
         /// <param name="reason">Reason for the allowance</param>
+        /// <param name="reasonCode">Reason code for the allowance</param>
         /// <param name="taxTypeCode">VAT type code for document level allowance/ charge</param>
         /// <param name="taxCategoryCode">VAT type code for document level allowance/ charge</param>
         /// <param name="taxPercent">VAT rate for the allowance</param>
-        public void AddTradeAllowanceCharge(bool isDiscount, decimal? basisAmount, CurrencyCodes currency, decimal actualAmount, string reason, TaxTypes taxTypeCode, TaxCategoryCodes taxCategoryCode, decimal taxPercent)
+        public void AddTradeAllowanceCharge(bool isDiscount, decimal? basisAmount, CurrencyCodes currency, decimal actualAmount,
+                                            string reason, TaxTypes taxTypeCode, TaxCategoryCodes taxCategoryCode, decimal taxPercent,
+                                            AllowanceReasonCodes reasonCode = AllowanceReasonCodes.Unknown)
         {
             this._TradeAllowanceCharges.Add(new TradeAllowanceCharge()
             {
                 ChargeIndicator = !isDiscount,
                 Reason = reason,
+                ReasonCode = reasonCode,
                 BasisAmount = basisAmount,
                 ActualAmount = actualAmount,
                 Currency = currency,
@@ -851,12 +860,14 @@ namespace s2industries.ZUGFeRD
         /// <param name="taxTypeCode">VAT type code for document level allowance/ charge</param>
         /// <param name="taxCategoryCode">VAT type code for document level allowance/ charge</param>
         /// <param name="taxPercent">VAT rate for the allowance</param>
-        public void AddTradeAllowanceCharge(bool isDiscount, decimal? basisAmount, CurrencyCodes currency, decimal actualAmount, decimal? chargePercentage, string reason, TaxTypes taxTypeCode, TaxCategoryCodes taxCategoryCode, decimal taxPercent)
+        /// <param name="reasonCode">Reason code for the allowance</param>
+        public void AddTradeAllowanceCharge(bool isDiscount, decimal? basisAmount, CurrencyCodes currency, decimal actualAmount, decimal? chargePercentage, string reason, TaxTypes taxTypeCode, TaxCategoryCodes taxCategoryCode, decimal taxPercent, AllowanceReasonCodes reasonCode = AllowanceReasonCodes.Unknown)
         {
             this._TradeAllowanceCharges.Add(new TradeAllowanceCharge()
             {
                 ChargeIndicator = !isDiscount,
                 Reason = reason,
+                ReasonCode = reasonCode,
                 BasisAmount = basisAmount,
                 ActualAmount = actualAmount,
                 Currency = currency,
@@ -891,7 +902,7 @@ namespace s2industries.ZUGFeRD
         /// <param name="dueDays"></param>
         /// <param name="percentage"></param>
         /// <param name="baseAmount"></param>
-        /// /// <param name="actualAmount"></param>
+        /// <param name="actualAmount"></param>
         public void AddTradePaymentTerms(string description, DateTime? dueDate = null,
             PaymentTermsType? paymentTermsType = null, int? dueDays = null,
             decimal? percentage = null, decimal? baseAmount = null, decimal? actualAmount = null)
@@ -1210,7 +1221,7 @@ namespace s2industries.ZUGFeRD
                              buyerAssignedID: buyerAssignedID,
                              deliveryNoteID: deliveryNoteID,
                              deliveryNoteDate: deliveryNoteDate,
-							 buyerOrderLineID: buyerOrderLineID,
+                             buyerOrderLineID: buyerOrderLineID,
                              buyerOrderID: buyerOrderID, // Extended!
                              buyerOrderDate: buyerOrderDate,
                              billingPeriodStart: billingPeriodStart,

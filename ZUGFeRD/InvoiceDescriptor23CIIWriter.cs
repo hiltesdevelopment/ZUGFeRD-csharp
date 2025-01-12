@@ -116,12 +116,12 @@ namespace s2industries.ZUGFeRD
                 Writer.WriteEndElement(); // !IssueDateTime
             }
 
-            //ToDo: CopyIndicator                // BT-X-3, Kopiekennzeichen, Extended
-            //ToDo: LanguageID                  // BT-X-4, Sprachkennzeichen, Extended
+            // TODO: CopyIndicator                // BT-X-3, Kopiekennzeichen, Extended
+            // TODO: LanguageID                  // BT-X-4, Sprachkennzeichen, Extended
 
             _writeNotes(Writer, this.Descriptor.Notes, ALL_PROFILES ^ Profile.Minimum); // BG-1, BT-X-5, BT-22, BT-21
 
-            //ToDo: EffectiveSpecifiedPeriod    // BT-X-6, Vertragliches Fälligkeitsdatum der Rechnung, Extended
+            // TODO: EffectiveSpecifiedPeriod    // BT-X-6, Vertragliches Fälligkeitsdatum der Rechnung, Extended
 
             Writer.WriteEndElement(); // !rsm:ExchangedDocument
             #endregion
@@ -166,7 +166,7 @@ namespace s2industries.ZUGFeRD
                 }
                 #endregion
 
-                // ToDo: IncludedNote            // BT-127, Detailinformationen zum Freitext zur Position, Basic+Comfort+Extended+XRechnung
+                // TODO: IncludedNote            // BT-127, Detailinformationen zum Freitext zur Position, Basic+Comfort+Extended+XRechnung
 
                 // handelt es sich um einen Kommentar?
                 bool isCommentItem = false;
@@ -186,8 +186,8 @@ namespace s2industries.ZUGFeRD
                 Writer.WriteOptionalElementString("ram", "SellerAssignedID", tradeLineItem.SellerAssignedID, Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
                 Writer.WriteOptionalElementString("ram", "BuyerAssignedID", tradeLineItem.BuyerAssignedID, Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
 
-                // ToDo: IndustryAssignedID     // BT-X-532, Von der Industrie zugewiesene Produktkennung
-                // ToDo: ModelID                // BT-X-533, Modelkennung des Artikels
+                // TODO: IndustryAssignedID     // BT-X-532, Von der Industrie zugewiesene Produktkennung
+                // TODO: ModelID                // BT-X-533, Modelkennung des Artikels
 
                 // BT-153
                 Writer.WriteOptionalElementString("ram", "Name", tradeLineItem.Name, Profile.Basic | Profile.Comfort | Profile.Extended);
@@ -195,9 +195,9 @@ namespace s2industries.ZUGFeRD
 
                 Writer.WriteOptionalElementString("ram", "Description", tradeLineItem.Description, Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
 
-                // ToDo: BatchID                // BT-X-534, Kennung der Charge (des Loses) des Artikels
-                // ToDo: BrandName              // BT-X-535, Markenname des Artikels
-                // ToDo: ModelName              // BT-X-536, Modellbezeichnung des Artikels
+                // TODO: BatchID                // BT-X-534, Kennung der Charge (des Loses) des Artikels
+                // TODO: BrandName              // BT-X-535, Markenname des Artikels
+                // TODO: ModelName              // BT-X-536, Modellbezeichnung des Artikels
 
                 // BG-32, Artikelattribute
                 if (tradeLineItem.ApplicableProductCharacteristics?.Any() == true)
@@ -205,9 +205,9 @@ namespace s2industries.ZUGFeRD
                     foreach (var productCharacteristic in tradeLineItem.ApplicableProductCharacteristics)
                     {
                         Writer.WriteStartElement("ram", "ApplicableProductCharacteristic");
-                        // ToDo: TypeCode        // BT-X-11, Art der Produkteigenschaft (Code), Extended
+                        // TODO: TypeCode        // BT-X-11, Art der Produkteigenschaft (Code), Extended
                         Writer.WriteOptionalElementString("ram", "Description", productCharacteristic.Description);
-                        // ToDo: ValueMeasure    // BT-X-12, Wert der Produkteigenschaft (numerische Messgröße), mit unitCode, Extended
+                        // TODO: ValueMeasure    // BT-X-12, Wert der Produkteigenschaft (numerische Messgröße), mit unitCode, Extended
                         Writer.WriteOptionalElementString("ram", "Value", productCharacteristic.Value); // BT-161
                         Writer.WriteEndElement(); // !ram:ApplicableProductCharacteristic
                     }
@@ -233,15 +233,15 @@ namespace s2industries.ZUGFeRD
                     }
                 }
 
-                // ToDo: IndividualTradeProductInstance, BG-X-84, Artikel (Handelsprodukt) Instanzen
-                // ToDo: OriginTradeCountry + ID, BT-159, Detailinformationen zur Produktherkunft, Comfort+Extended+XRechnung
+                // TODO: IndividualTradeProductInstance, BG-X-84, Artikel (Handelsprodukt) Instanzen
+                // TODO: OriginTradeCountry + ID, BT-159, Detailinformationen zur Produktherkunft, Comfort+Extended+XRechnung
 
                 if ((descriptor.Profile == Profile.Extended) && (tradeLineItem.IncludedReferencedProducts?.Any() == true)) // BG-X-1
                 {
                     foreach (var includedItem in tradeLineItem.IncludedReferencedProducts)
                     {
                         Writer.WriteStartElement("ram", "IncludedReferencedProduct");
-                        // ToDo: GlobalID, SellerAssignedID, BuyerAssignedID, IndustryAssignedID, Description
+                        // TODO: GlobalID, SellerAssignedID, BuyerAssignedID, IndustryAssignedID, Description
                         Writer.WriteOptionalElementString("ram", "Name", includedItem.Name); // BT-X-18
 
                         if (includedItem.UnitQuantity.HasValue)
@@ -318,7 +318,7 @@ namespace s2industries.ZUGFeRD
                     //Detailangaben zu einer zusätzlichen Dokumentenreferenz
                     foreach (AdditionalReferencedDocument document in tradeLineItem._AdditionalReferencedDocuments)
                     {
-                        _writeAdditionalReferencedDocument(document, Profile.Extended);
+                        _writeAdditionalReferencedDocument(document, Profile.Extended, "BG-X-3");
                     } // !foreach(document)
                     #endregion
 
@@ -380,6 +380,7 @@ namespace s2industries.ZUGFeRD
                             Writer.WriteEndElement();
                             #endregion
 
+                            Writer.WriteOptionalElementString("ram", "ReasonCode", tradeAllowanceCharge.ReasonCode.GetDescriptionAttribute(), Profile.Extended);
                             Writer.WriteOptionalElementString("ram", "Reason", tradeAllowanceCharge.Reason, Profile.Extended); // not in XRechnung according to CII-SR-128
 
                             Writer.WriteEndElement(); // !AppliedTradeAllowanceCharge
@@ -402,7 +403,7 @@ namespace s2industries.ZUGFeRD
                     #endregion // !NetPriceProductTradePrice(Basic|Comfort|Extended|XRechnung)
 
                     #region UltimateCustomerOrderReferencedDocument
-                    //ToDo: UltimateCustomerOrderReferencedDocument
+                    // TODO: UltimateCustomerOrderReferencedDocument
                     #endregion
                     Writer.WriteEndElement(); // ram:SpecifiedLineTradeAgreement
                 }
@@ -535,7 +536,7 @@ namespace s2industries.ZUGFeRD
                             Writer.WriteEndElement();
                             #endregion
 
-                            // TODO: ReasonCode, BT-140, BT-145 -> missing in TradeAllowanceCharge
+                            Writer.WriteOptionalElementString("ram", "ReasonCode", specifiedTradeAllowanceCharge.ReasonCode.GetDescriptionAttribute()); // BT-140, BT-145
                             Writer.WriteOptionalElementString("ram", "Reason", specifiedTradeAllowanceCharge.Reason); // BT-139, BT-144
 
                             Writer.WriteEndElement(); // !ram:SpecifiedTradeAllowanceCharge
@@ -565,50 +566,64 @@ namespace s2industries.ZUGFeRD
                 Writer.WriteValue(_formatDecimal(total));
                 Writer.WriteEndElement(); // !ram:LineTotalAmount
 
-                //ToDo: TotalAllowanceChargeAmount
+                // TODO: TotalAllowanceChargeAmount
                 //Gesamtbetrag der Positionszu- und Abschläge
                 Writer.WriteEndElement(); // ram:SpecifiedTradeSettlementMonetarySummation
                 #endregion
 
+                // TODO: InvoiceReferencedDocument, BG-X-48
+
                 #region AdditionalReferencedDocument
-                //Objektkennung auf Ebene der Rechnungsposition
-                //ToDo: AdditionalReferencedDocument
+                //Objektkennung auf Ebene der Rechnungsposition, BT-128-00
+                if (tradeLineItem.GetAdditionalReferencedDocuments().Count > 0)
+                {
+                    foreach (var document in tradeLineItem.GetAdditionalReferencedDocuments())
+                    {
+                        if (string.IsNullOrWhiteSpace(document.ID))
+                        {
+                            continue;
+                        }
+
+                        _writeAdditionalReferencedDocument(document, Profile.Comfort | Profile.Extended | Profile.XRechnung | Profile.XRechnung1, "BT-128-00");
+                        // only Extended allows multiple entries
+                        if (this.Descriptor.Profile != Profile.Extended)
+                        {
+                            break;
+                        }
+                    }
+                }
                 #endregion
 
                 #region ReceivableSpecifiedTradeAccountingAccount
-                //Detailinformationen zur Buchungsreferenz
-                if ((descriptor.Profile == Profile.XRechnung1 || descriptor.Profile == Profile.XRechnung) && tradeLineItem.ReceivableSpecifiedTradeAccountingAccounts.Count > 0)
+                // Detailinformationen zur Buchungsreferenz, BT-133-00
+                if (tradeLineItem.ReceivableSpecifiedTradeAccountingAccounts?.Any() == true)
                 {
-                    //only one ReceivableSpecifiedTradeAccountingAccount (BT-133) is allowed in Profile XRechnung
-                    Writer.WriteStartElement("ram", "ReceivableSpecifiedTradeAccountingAccount", Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
+                    foreach (var traceAccountingAccount in tradeLineItem.ReceivableSpecifiedTradeAccountingAccounts)
                     {
-                        Writer.WriteStartElement("ram", "ID");
-                        Writer.WriteValue(tradeLineItem.ReceivableSpecifiedTradeAccountingAccounts[0].TradeAccountID);  //BT-133
-                        Writer.WriteEndElement(); // !ram:ID
-                    }
-                    Writer.WriteEndElement(); // !ram:ReceivableSpecifiedTradeAccountingAccount
-                }
-                else
-                {
-                    //multiple ReceivableSpecifiedTradeAccountingAccounts are allowed in other profiles
-                    foreach (ReceivableSpecifiedTradeAccountingAccount rsta in tradeLineItem.ReceivableSpecifiedTradeAccountingAccounts)
-                    {
-                        Writer.WriteStartElement("ram", "ReceivableSpecifiedTradeAccountingAccount", Profile.Comfort | Profile.Extended);
-
+                        if (string.IsNullOrWhiteSpace(traceAccountingAccount.TradeAccountID))
                         {
-                            Writer.WriteStartElement("ram", "ID");
-                            Writer.WriteValue(rsta.TradeAccountID);
-                            Writer.WriteEndElement(); // !ram:ID
+                            continue;
                         }
 
-                        if (rsta.TradeAccountTypeCode != AccountingAccountTypeCodes.Unknown)
+                        Writer.WriteStartElement("ram", "ReceivableSpecifiedTradeAccountingAccount", Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
+                        Writer.WriteStartElement("ram", "ID");
+                        Writer.WriteValue(traceAccountingAccount.TradeAccountID); // BT-133
+                        Writer.WriteEndElement(); // !ram:ID
+
+                        if (traceAccountingAccount.TradeAccountTypeCode != AccountingAccountTypeCodes.Unknown)
                         {
                             Writer.WriteStartElement("ram", "TypeCode", Profile.Extended);
-                            Writer.WriteValue(((int)rsta.TradeAccountTypeCode).ToString());
+                            Writer.WriteValue(((int)traceAccountingAccount.TradeAccountTypeCode).ToString()); // BT-X-99
                             Writer.WriteEndElement(); // !ram:TypeCode
                         }
 
                         Writer.WriteEndElement(); // !ram:ReceivableSpecifiedTradeAccountingAccount
+
+                        // Only Extended allows multiple accounts per line item, otherwise break
+                        if (descriptor.Profile != Profile.Extended)
+                        {
+                            break;
+                        }
                     }
                 }
                 #endregion
@@ -698,11 +713,11 @@ namespace s2industries.ZUGFeRD
             #endregion
 
             #region 4. AdditionalReferencedDocument
-            if (this.Descriptor.AdditionalReferencedDocuments != null)
+            if (this.Descriptor.AdditionalReferencedDocuments != null) // BG-24
             {
-                foreach (AdditionalReferencedDocument document in this.Descriptor.AdditionalReferencedDocuments)
+                foreach (var document in this.Descriptor.AdditionalReferencedDocuments)
                 {
-                    _writeAdditionalReferencedDocument(document, Profile.Comfort | Profile.Extended | Profile.XRechnung); // BG-24
+                    _writeAdditionalReferencedDocument(document, Profile.Comfort | Profile.Extended | Profile.XRechnung | Profile.XRechnung1, "BG-24");
                 }
             }
             #endregion
@@ -956,31 +971,36 @@ namespace s2industries.ZUGFeRD
             //  13. SpecifiedTradeAllowanceCharge (optional)
             foreach (TradeAllowanceCharge tradeAllowanceCharge in this.Descriptor.GetTradeAllowanceCharges())
             {
-                Writer.WriteStartElement("ram", "SpecifiedTradeAllowanceCharge");
-                Writer.WriteStartElement("ram", "ChargeIndicator");
-                Writer.WriteElementString("udt", "Indicator", tradeAllowanceCharge.ChargeIndicator ? "true" : "false");
+                Writer.WriteStartElement("ram", "SpecifiedTradeAllowanceCharge", ALL_PROFILES ^ Profile.Minimum);
+                Writer.WriteStartElement("ram", "ChargeIndicator"); // BG-21-0
+                Writer.WriteElementString("udt", "Indicator", tradeAllowanceCharge.ChargeIndicator ? "true" : "false"); // BG-21-1
                 Writer.WriteEndElement(); // !ram:ChargeIndicator
+
+                // TODO: SequenceNumeric, BT-X-268, Berechnungsreihenfolge
 
                 if (tradeAllowanceCharge.ChargePercentage.HasValue)
                 {
-                    Writer.WriteStartElement("ram", "CalculationPercent", profile: Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
+                    Writer.WriteStartElement("ram", "CalculationPercent", profile: Profile.Extended | Profile.XRechnung1 | Profile.XRechnung); // BT-101
                     Writer.WriteValue(_formatDecimal(tradeAllowanceCharge.ChargePercentage.Value));
                     Writer.WriteEndElement();
                 }
 
                 if (tradeAllowanceCharge.BasisAmount.HasValue)
                 {
-                    Writer.WriteStartElement("ram", "BasisAmount", profile: Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
+                    Writer.WriteStartElement("ram", "BasisAmount"); // BT-100
                     Writer.WriteValue(_formatDecimal(tradeAllowanceCharge.BasisAmount.Value));
                     Writer.WriteEndElement();
                 }
 
-                Writer.WriteStartElement("ram", "ActualAmount");
+                // TODO: BasisQuantity (+unitCode), BT-X-269, Basismenge des Rabatts
+
+                Writer.WriteStartElement("ram", "ActualAmount"); // BT-99
                 Writer.WriteValue(_formatDecimal(tradeAllowanceCharge.ActualAmount, 2));
                 Writer.WriteEndElement();
 
 
-                Writer.WriteOptionalElementString("ram", "Reason", tradeAllowanceCharge.Reason);
+                Writer.WriteOptionalElementString("ram", "ReasonCode", tradeAllowanceCharge.ReasonCode.GetDescriptionAttribute()); // BT-98
+                Writer.WriteOptionalElementString("ram", "Reason", tradeAllowanceCharge.Reason); // BT-97
 
                 if (tradeAllowanceCharge.Tax != null)
                 {
@@ -1177,46 +1197,40 @@ namespace s2industries.ZUGFeRD
             #endregion
 
             #region ReceivableSpecifiedTradeAccountingAccount
-            if (this.Descriptor.ReceivableSpecifiedTradeAccountingAccounts != null && this.Descriptor.ReceivableSpecifiedTradeAccountingAccounts.Count > 0)
+            // Detailinformationen zur Buchungsreferenz, BT-19-00
+            if (this.Descriptor.ReceivableSpecifiedTradeAccountingAccounts?.Any() == true)
             {
-                if (descriptor.Profile == Profile.XRechnung1 || descriptor.Profile == Profile.XRechnung)
+                foreach (var traceAccountingAccount in this.Descriptor.ReceivableSpecifiedTradeAccountingAccounts)
                 {
-                    if (!string.IsNullOrWhiteSpace(this.Descriptor.ReceivableSpecifiedTradeAccountingAccounts[0].TradeAccountID))
+                    if (string.IsNullOrWhiteSpace(traceAccountingAccount.TradeAccountID))
                     {
-                        Writer.WriteStartElement("ram", "ReceivableSpecifiedTradeAccountingAccount");
-                        {
-                            //BT-19
-                            Writer.WriteStartElement("ram", "ID");
-                            Writer.WriteValue(this.Descriptor.ReceivableSpecifiedTradeAccountingAccounts[0].TradeAccountID);
-                            Writer.WriteEndElement(); // !ram:ID
-                        }
-                        Writer.WriteEndElement(); // !ram:ReceivableSpecifiedTradeAccountingAccount
+                        continue;
                     }
-                }
-                else
-                {
-                    foreach (ReceivableSpecifiedTradeAccountingAccount traceAccountingAccount in this.Descriptor.ReceivableSpecifiedTradeAccountingAccounts)
+
+                    Writer.WriteStartElement("ram", "ReceivableSpecifiedTradeAccountingAccount", ALL_PROFILES ^ Profile.Minimum);
+                    Writer.WriteStartElement("ram", "ID");
+                    Writer.WriteValue(traceAccountingAccount.TradeAccountID); // BT-19
+                    Writer.WriteEndElement(); // !ram:ID
+
+                    if (traceAccountingAccount.TradeAccountTypeCode != AccountingAccountTypeCodes.Unknown)
                     {
-                        Writer.WriteStartElement("ram", "ReceivableSpecifiedTradeAccountingAccount", Profile.BasicWL | Profile.Basic | Profile.Comfort | Profile.Extended);
+                        Writer.WriteStartElement("ram", "TypeCode", Profile.Extended);
+                        Writer.WriteValue(((int)traceAccountingAccount.TradeAccountTypeCode).ToString()); // BT-X-290
+                        Writer.WriteEndElement(); // !ram:TypeCode
+                    }
 
-                        {
-                            //BT-19
-                            Writer.WriteStartElement("ram", "ID", Profile.BasicWL | Profile.Basic | Profile.Comfort | Profile.Extended);
-                            Writer.WriteValue(traceAccountingAccount.TradeAccountID);
-                            Writer.WriteEndElement(); // !ram:ID
-                        }
+                    Writer.WriteEndElement(); // !ram:ReceivableSpecifiedTradeAccountingAccount
 
-                        if (traceAccountingAccount.TradeAccountTypeCode != AccountingAccountTypeCodes.Unknown)
-                        {
-                            Writer.WriteStartElement("ram", "TypeCode", Profile.Extended);
-                            Writer.WriteValue(((int)traceAccountingAccount.TradeAccountTypeCode).ToString());
-                            Writer.WriteEndElement(); // !ram:TypeCode
-                        }
-
-                        Writer.WriteEndElement(); // !ram:ReceivableSpecifiedTradeAccountingAccount
+                    // Only BasicWL and Extended allow multiple accounts
+                    if (!this.Descriptor.Profile.In(Profile.BasicWL, Profile.Extended))
+                    {
+                        break;
                     }
                 }
             }
+
+            // TODO: SpecifiedAdvancePayment (0..unbounded), BG-X-45
+
             #endregion
             Writer.WriteEndElement(); // !ram:ApplicableHeaderTradeSettlement
 
@@ -1233,10 +1247,34 @@ namespace s2industries.ZUGFeRD
         } // !Save()
 
 
-        private void _writeAdditionalReferencedDocument(AdditionalReferencedDocument document, Profile profile)
+        private void _writeAdditionalReferencedDocument(AdditionalReferencedDocument document, Profile profile, string parentElement = "")
         {
+            if (string.IsNullOrWhiteSpace(document?.ID))
+            {
+                return;
+            }
+
             Writer.WriteStartElement("ram", "AdditionalReferencedDocument", profile);
             Writer.WriteElementString("ram", "IssuerAssignedID", document.ID);
+
+            var subProfile = profile;
+            switch (parentElement)
+            {
+                case "BG-24":
+                    subProfile = Profile.Comfort | Profile.Extended | Profile.XRechnung;
+                    break;
+                case "BG-X-3":
+                    subProfile = Profile.Extended;
+                    break;
+            }
+            if (parentElement == "BG-24" || parentElement == "BG-X-3")
+            {
+                Writer.WriteOptionalElementString("ram", "URIID", document.URIID, subProfile); // BT-124, BT-X-28
+            }
+            if (parentElement == "BG-X-3")
+            {
+                Writer.WriteOptionalElementString("ram", "LineID", document.LineID, subProfile); // BT-X-29
+            }
 
             if (document.TypeCode != AdditionalReferencedDocumentTypeCode.Unknown)
             {
@@ -1245,14 +1283,20 @@ namespace s2industries.ZUGFeRD
 
             if (document.ReferenceTypeCode != ReferenceTypeCodes.Unknown)
             {
-                Writer.WriteElementString("ram", "ReferenceTypeCode", document.ReferenceTypeCode.EnumToString());
+                if (parentElement == "BT-18-00" || parentElement == "BT-128-00" || parentElement == "BG-X-3")
+                {
+                    Writer.WriteOptionalElementString("ram", "ReferenceTypeCode", document.ReferenceTypeCode.EnumToString()); // BT-128-1, BT-18-1, BT-X-32
+                }
             }
 
-            Writer.WriteOptionalElementString("ram", "Name", document.Name);
+            if (parentElement == "BG-24" || parentElement == "BG-X-3")
+            {
+                Writer.WriteOptionalElementString("ram", "Name", document.Name, subProfile); // BT-123, BT-X-299
+            }
 
             if (document.AttachmentBinaryObject != null)
             {
-                Writer.WriteStartElement("ram", "AttachmentBinaryObject");
+                Writer.WriteStartElement("ram", "AttachmentBinaryObject", subProfile); // BT-125, BT-X-31
                 Writer.WriteAttributeString("filename", document.Filename);
                 Writer.WriteAttributeString("mimeCode", MimeTypeMapper.GetMimeType(document.Filename));
                 Writer.WriteValue(Convert.ToBase64String(document.AttachmentBinaryObject));
@@ -1261,7 +1305,7 @@ namespace s2industries.ZUGFeRD
 
             if (document.IssueDateTime.HasValue)
             {
-                Writer.WriteStartElement("ram", "FormattedIssueDateTime");
+                Writer.WriteStartElement("ram", "FormattedIssueDateTime", Profile.Extended);
                 Writer.WriteStartElement("qdt", "DateTimeString");
                 Writer.WriteAttributeString("format", "102");
                 Writer.WriteValue(_formatDate(document.IssueDateTime.Value));
@@ -1322,12 +1366,7 @@ namespace s2industries.ZUGFeRD
 
         private void _writeOptionalTaxes(ProfileAwareXmlTextWriter writer)
         {
-            if (this.Descriptor.Taxes?.Count == 0)
-            {
-                return;
-            }
-
-            foreach (Tax tax in this.Descriptor.Taxes)
+            this.Descriptor.Taxes?.ForEach (tax =>
             {
                 writer.WriteStartElement("ram", "ApplicableTradeTax");
 
@@ -1366,18 +1405,13 @@ namespace s2industries.ZUGFeRD
 
                 writer.WriteElementString("ram", "RateApplicablePercent", _formatDecimal(tax.Percent));
                 writer.WriteEndElement(); // !RateApplicablePercent
-            }
+            });
         } // !_writeOptionalTaxes()
 
 
         private void _writeNotes(ProfileAwareXmlTextWriter writer, List<Note> notes, Profile profile = Profile.Unknown)
         {
-            if (notes?.Count == 0)
-            {
-                return;
-            }
-
-            foreach (Note note in notes)
+            notes?.ForEach (note =>
             {
                 writer.WriteStartElement("ram", "IncludedNote", profile);
                 if (note.ContentCode != ContentCodes.Unknown)
@@ -1390,7 +1424,7 @@ namespace s2industries.ZUGFeRD
                     writer.WriteElementString("ram", "SubjectCode", note.SubjectCode.EnumToString());
                 }
                 writer.WriteEndElement();
-            }
+            });
         } // !_writeNotes()
 
 
