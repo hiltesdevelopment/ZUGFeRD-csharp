@@ -661,18 +661,6 @@ namespace s2industries.ZUGFeRD
                     Writer.WriteOptionalElementString("ram", "ProprietaryID", debitorAccount.ID);
                     Writer.WriteEndElement(); // !PayerPartyDebtorFinancialAccount
 
-                    if (!string.IsNullOrWhiteSpace(debitorAccount.BIC) ||
-                        !string.IsNullOrWhiteSpace(debitorAccount.Bankleitzahl) ||
-                        !string.IsNullOrWhiteSpace(debitorAccount.BankName))
-                    {
-                        Writer.WriteStartElement("ram", "PayerSpecifiedDebtorFinancialInstitution");
-
-                        Writer.WriteOptionalElementString("ram", "BICID", debitorAccount.BIC);
-                        Writer.WriteOptionalElementString("ram", "GermanBankleitzahlID", debitorAccount.Bankleitzahl);
-                        Writer.WriteOptionalElementString("ram", "Name", debitorAccount.BankName);
-                        Writer.WriteEndElement(); // !PayerSpecifiedDebtorFinancialInstitution
-                    }
-
                     Writer.WriteEndElement(); // !SpecifiedTradeSettlementPaymentMeans
                 }
             }
@@ -1017,17 +1005,17 @@ namespace s2industries.ZUGFeRD
                 writer.WriteValue(_formatDecimal(tax.BasisAmount));
                 writer.WriteEndElement(); // !BasisAmount
 
-                if (tax.AllowanceChargeBasisAmount.HasValue && (tax.AllowanceChargeBasisAmount.Value != 0))
-                {
-                    writer.WriteStartElement("ram", "AllowanceChargeBasisAmount", Profile.Extended);
-                    writer.WriteValue(_formatDecimal(tax.AllowanceChargeBasisAmount));
-                    writer.WriteEndElement(); // !AllowanceChargeBasisAmount
-                }
                 if (tax.LineTotalBasisAmount.HasValue && (tax.LineTotalBasisAmount.Value != 0))
                 {
                     writer.WriteStartElement("ram", "LineTotalBasisAmount", Profile.Extended);
                     writer.WriteValue(_formatDecimal(tax.LineTotalBasisAmount));
                     writer.WriteEndElement();
+                }
+                if (tax.AllowanceChargeBasisAmount.HasValue && (tax.AllowanceChargeBasisAmount.Value != 0))
+                {
+                    writer.WriteStartElement("ram", "AllowanceChargeBasisAmount", Profile.Extended);
+                    writer.WriteValue(_formatDecimal(tax.AllowanceChargeBasisAmount));
+                    writer.WriteEndElement(); // !AllowanceChargeBasisAmount
                 }
 
                 if (tax.CategoryCode.HasValue)
