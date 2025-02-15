@@ -1272,7 +1272,6 @@ namespace s2industries.ZUGFeRD.Test
             desc.AddAdditionalReferencedDocument(
                 id: id,
                 typeCode: AdditionalReferencedDocumentTypeCode.InvoiceDataSheet,
-                referenceTypeCode: ReferenceTypeCodes.AAB,
                 issueDateTime: issueDateTime,
                 name: "Invoice Data Sheet",
                 uriID: uriID);
@@ -1280,8 +1279,7 @@ namespace s2industries.ZUGFeRD.Test
                 id: id+"2",
                 typeCode: AdditionalReferencedDocumentTypeCode.ReferenceDocument,
                 referenceTypeCode: ReferenceTypeCodes.PP,
-                issueDateTime: issueDateTime,
-                name: "Reference Document");
+                issueDateTime: issueDateTime);
 
             MemoryStream ms = new MemoryStream();
             desc.Save(ms, ZUGFeRDVersion.Version23, Profile.Extended);
@@ -1302,12 +1300,12 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(ReferenceTypeCodes.Unknown, loadedInvoice.AdditionalReferencedDocuments[0].ReferenceTypeCode);
             Assert.AreEqual(AdditionalReferencedDocumentTypeCode.InvoiceDataSheet, loadedInvoice.AdditionalReferencedDocuments[0].TypeCode);
             // checks for 2nd document
-            Assert.AreEqual("Reference Document", loadedInvoice.AdditionalReferencedDocuments[1].Name);
+            Assert.AreEqual("", loadedInvoice.AdditionalReferencedDocuments[1].Name);
             Assert.AreEqual(issueDateTime, loadedInvoice.AdditionalReferencedDocuments[1].IssueDateTime);
             Assert.AreEqual(id+"2", loadedInvoice.AdditionalReferencedDocuments[1].ID);
             Assert.IsNull(loadedInvoice.AdditionalReferencedDocuments[1].URIID);
             Assert.IsNull(loadedInvoice.AdditionalReferencedDocuments[1].LineID);
-            Assert.AreEqual(ReferenceTypeCodes.Unknown, loadedInvoice.AdditionalReferencedDocuments[1].ReferenceTypeCode);
+            Assert.AreEqual(ReferenceTypeCodes.PP, loadedInvoice.AdditionalReferencedDocuments[1].ReferenceTypeCode);
         } // !TestAdditionalReferencedDocument()
 
 
@@ -1878,7 +1876,7 @@ namespace s2industries.ZUGFeRD.Test
             lineItem.SetDeliveryNoteReferencedDocument("12345", timestamp, "1");
             lineItem.SetContractReferencedDocument("12345", timestamp, "1");
 
-            lineItem.AddAdditionalReferencedDocument("xyz", AdditionalReferencedDocumentTypeCode.ReferenceDocument, ReferenceTypeCodes.AAB, timestamp);
+            lineItem.AddAdditionalReferencedDocument("xyz", AdditionalReferencedDocumentTypeCode.ReferenceDocument, ReferenceTypeCodes.AAB, timestamp); // To align with PEPPOL-EN16931-R101, this shall be ignored
             lineItem.AddAdditionalReferencedDocument("abc", AdditionalReferencedDocumentTypeCode.InvoiceDataSheet, ReferenceTypeCodes.PP, timestamp);
 
             lineItem.UnitQuantity = 3m;
@@ -2094,13 +2092,13 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual("12345", loadedLineItem.ContractReferencedDocument.ID);
             Assert.AreEqual(timestamp, loadedLineItem.ContractReferencedDocument.IssueDateTime);
 
-            Assert.IsTrue(loadedLineItem.GetAdditionalReferencedDocuments().Count == 2);
+            Assert.IsTrue(loadedLineItem.GetAdditionalReferencedDocuments().Count == 1);
             var lineItemReferencedDoc = loadedLineItem.GetAdditionalReferencedDocuments().FirstOrDefault();
             Assert.IsNotNull(lineItemReferencedDoc);
-            Assert.AreEqual("xyz", lineItemReferencedDoc.ID);
-            Assert.AreEqual(AdditionalReferencedDocumentTypeCode.ReferenceDocument, lineItemReferencedDoc.TypeCode);
+            Assert.AreEqual("abc", lineItemReferencedDoc.ID);
+            Assert.AreEqual(AdditionalReferencedDocumentTypeCode.InvoiceDataSheet, lineItemReferencedDoc.TypeCode);
             Assert.AreEqual(timestamp, lineItemReferencedDoc.IssueDateTime);
-            Assert.AreEqual(ReferenceTypeCodes.AAB, lineItemReferencedDoc.ReferenceTypeCode);
+            Assert.AreEqual(ReferenceTypeCodes.PP, lineItemReferencedDoc.ReferenceTypeCode);
 
 
             var productCharacteristics = loadedLineItem.ApplicableProductCharacteristics.FirstOrDefault();
@@ -3167,5 +3165,23 @@ namespace s2industries.ZUGFeRD.Test
             }
 
         } // !TestInvoiceExemptions()
+
+        [TestMethod]
+        public void TestOriginTradeCountry()
+        {
+            InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
+
+            desc.TradeLineItems[0].OriginTradeCountry = CountryCodes.DE;
+
+            MemoryStream ms = new MemoryStream();
+
+            desc.Save(ms, ZUGFeRDVersion.Version23, Profile.Extended);
+            ms.Seek(0, SeekOrigin.Begin);
+
+            InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(ms);
+            List<TradeLineItem> items = loadedInvoice.GetTradeLineItems();
+
+            Assert.AreEqual(items[0].OriginTradeCountry.ToString(), "DE");
+        } // !TestOriginTradeCountry()
     }
 }

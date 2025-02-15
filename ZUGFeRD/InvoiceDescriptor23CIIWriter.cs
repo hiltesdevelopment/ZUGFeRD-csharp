@@ -232,7 +232,14 @@ namespace s2industries.ZUGFeRD
                 }
 
                 // TODO: IndividualTradeProductInstance, BG-X-84, Artikel (Handelsprodukt) Instanzen
-                // TODO: OriginTradeCountry + ID, BT-159, Detailinformationen zur Produktherkunft, Comfort+Extended+XRechnung
+
+                // BT-159, Detailinformationen zur Produktherkunft
+                if (tradeLineItem.OriginTradeCountry != null)
+                {
+                    Writer.WriteStartElement("ram", "OriginTradeCountry", PROFILE_COMFORT_EXTENDED_XRECHNUNG);
+                    Writer.WriteElementString("ram", "ID", tradeLineItem.OriginTradeCountry.ToString());
+                    Writer.WriteEndElement(); // !ram:OriginTradeCountry
+                }
 
                 if ((descriptor.Profile == Profile.Extended) && (tradeLineItem.IncludedReferencedProducts?.Any() == true)) // BG-X-1
                 {
@@ -590,7 +597,8 @@ namespace s2industries.ZUGFeRD
                 //Objektkennung auf Ebene der Rechnungsposition, BT-128-00
                 if (tradeLineItem.GetAdditionalReferencedDocuments().Count > 0)
                 {
-                    foreach (var document in tradeLineItem.GetAdditionalReferencedDocuments())
+                    foreach (var document in tradeLineItem.GetAdditionalReferencedDocuments()
+                                                          .Where(x => x.TypeCode == AdditionalReferencedDocumentTypeCode.InvoiceDataSheet))  // PEPPOL-EN16931-R101: Element Document reference can only be used for Invoice line object
                     {
                         if (string.IsNullOrWhiteSpace(document.ID))
                         {
@@ -738,11 +746,12 @@ namespace s2industries.ZUGFeRD
             #endregion
 
             #region 4. AdditionalReferencedDocument
-            if (this.Descriptor.AdditionalReferencedDocuments != null) // BG-24
+            if (this.Descriptor.AdditionalReferencedDocuments != null) // BG-24 | BT-18-00
             {
                 foreach (var document in this.Descriptor.AdditionalReferencedDocuments)
                 {
-                    _writeAdditionalReferencedDocument(document, PROFILE_COMFORT_EXTENDED_XRECHNUNG, "BG-24");
+                    _writeAdditionalReferencedDocument(document, PROFILE_COMFORT_EXTENDED_XRECHNUNG,
+                        document.ReferenceTypeCode != ReferenceTypeCodes.Unknown ? "BT-18-00" : "BG-24");
                 }
             }
             #endregion
@@ -1276,6 +1285,7 @@ namespace s2industries.ZUGFeRD
             var subProfile = profile;
             switch (parentElement)
             {
+                case "BT-18-00":
                 case "BG-24":
                     subProfile = Profile.Comfort | Profile.Extended | Profile.XRechnung;
                     break;
@@ -1299,7 +1309,9 @@ namespace s2industries.ZUGFeRD
 
             if (document.ReferenceTypeCode != ReferenceTypeCodes.Unknown)
             {
-                if (parentElement == "BT-18-00" || parentElement == "BT-128-00" || parentElement == "BG-X-3")
+                // CII-DT-024: ReferenceTypeCode is only allowed in BT-18-00 and BT-128-00 for InvoiceDataSheet
+                if (((parentElement == "BT-18-00" || parentElement == "BT-128-00") && document.TypeCode == AdditionalReferencedDocumentTypeCode.InvoiceDataSheet)
+                    || parentElement == "BG-X-3")
                 {
                     Writer.WriteOptionalElementString("ram", "ReferenceTypeCode", document.ReferenceTypeCode.EnumToString()); // BT-128-1, BT-18-1, BT-X-32
                 }
