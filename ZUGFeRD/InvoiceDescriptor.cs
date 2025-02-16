@@ -895,7 +895,7 @@ namespace s2industries.ZUGFeRD
         /// <param name="filename">Optional filename for the attachment</param>
         /// <param name="uriID">Optional URI identifier</param>
         public void AddAdditionalReferencedDocument(string id, AdditionalReferencedDocumentTypeCode typeCode,
-            DateTime? issueDateTime = null, string name = null, ReferenceTypeCodes referenceTypeCode = ReferenceTypeCodes.Unknown,
+            DateTime? issueDateTime = null, string name = null, ReferenceTypeCodes? referenceTypeCode = null,
             byte[] attachmentBinaryObject = null, string filename = null, string uriID = null)
         {
             this.AdditionalReferencedDocuments.Add(new AdditionalReferencedDocument()
@@ -1937,17 +1937,7 @@ namespace s2industries.ZUGFeRD
             return this.DebitorBankAccounts?.Any() == true;
         } // !AnyDebitorFinancialAccount()
 
-
-        /// <summary>
-        /// Adds a receivable specified trade accounting account with ID
-        /// </summary>
-        /// <param name="AccountID">The account identifier</param>
-        public void AddReceivableSpecifiedTradeAccountingAccount(string AccountID)
-        {
-            AddReceivableSpecifiedTradeAccountingAccount(AccountID, AccountingAccountTypeCodes.Unknown);
-        }
-
-
+        
         /// <summary>
         /// Adds a receivable specified trade accounting account with ID and type code
         ///
@@ -1955,7 +1945,7 @@ namespace s2industries.ZUGFeRD
         /// </summary>
         /// <param name="AccountID">The account identifier</param>
         /// <param name="AccountTypeCode">The account type code</param>
-        public void AddReceivableSpecifiedTradeAccountingAccount(string AccountID, AccountingAccountTypeCodes AccountTypeCode)
+        public void AddReceivableSpecifiedTradeAccountingAccount(string AccountID, AccountingAccountTypeCodes? AccountTypeCode = null)
         {
             this._ReceivableSpecifiedTradeAccountingAccounts.Add(new ReceivableSpecifiedTradeAccountingAccount()
             {

@@ -535,7 +535,7 @@ namespace s2industries.ZUGFeRD
                             #region ChargePercentage
                             if (specifiedTradeAllowanceCharge.ChargePercentage.HasValue)
                             {
-                                Writer.WriteStartElement("ram", "CalculationPercent", ALL_PROFILES ^ Profile.Basic); // BT-138, BT-143
+                                Writer.WriteStartElement("ram", "CalculationPercent"); // BT-138, BT-143
                                 Writer.WriteValue(_formatDecimal(specifiedTradeAllowanceCharge.ChargePercentage.Value, 2));
                                 Writer.WriteEndElement();
                             }
@@ -631,10 +631,10 @@ namespace s2industries.ZUGFeRD
                         Writer.WriteValue(traceAccountingAccount.TradeAccountID); // BT-133
                         Writer.WriteEndElement(); // !ram:ID
 
-                        if (traceAccountingAccount.TradeAccountTypeCode != AccountingAccountTypeCodes.Unknown)
+                        if (traceAccountingAccount.TradeAccountTypeCode.HasValue)
                         {
                             Writer.WriteStartElement("ram", "TypeCode", Profile.Extended);
-                            Writer.WriteValue(((int)traceAccountingAccount.TradeAccountTypeCode).ToString()); // BT-X-99
+                            Writer.WriteValue(((int)traceAccountingAccount.TradeAccountTypeCode.Value).ToString()); // BT-X-99
                             Writer.WriteEndElement(); // !ram:TypeCode
                         }
 
@@ -751,7 +751,7 @@ namespace s2industries.ZUGFeRD
                 foreach (var document in this.Descriptor.AdditionalReferencedDocuments)
                 {
                     _writeAdditionalReferencedDocument(document, PROFILE_COMFORT_EXTENDED_XRECHNUNG,
-                        document.ReferenceTypeCode != ReferenceTypeCodes.Unknown ? "BT-18-00" : "BG-24");
+                        document.ReferenceTypeCode.HasValue ? "BT-18-00" : "BG-24");
                 }
             }
             #endregion
@@ -1006,7 +1006,7 @@ namespace s2industries.ZUGFeRD
 
                 if (tradeAllowanceCharge.ChargePercentage.HasValue)
                 {
-                    Writer.WriteStartElement("ram", "CalculationPercent", profile: Profile.Extended | Profile.XRechnung1 | Profile.XRechnung); // BT-101
+                    Writer.WriteStartElement("ram", "CalculationPercent"); // BT-101
                     Writer.WriteValue(_formatDecimal(tradeAllowanceCharge.ChargePercentage.Value));
                     Writer.WriteEndElement();
                 }
@@ -1237,10 +1237,10 @@ namespace s2industries.ZUGFeRD
                     Writer.WriteValue(traceAccountingAccount.TradeAccountID); // BT-19
                     Writer.WriteEndElement(); // !ram:ID
 
-                    if (traceAccountingAccount.TradeAccountTypeCode != AccountingAccountTypeCodes.Unknown)
+                    if (traceAccountingAccount.TradeAccountTypeCode.HasValue)
                     {
                         Writer.WriteStartElement("ram", "TypeCode", Profile.Extended);
-                        Writer.WriteValue(((int)traceAccountingAccount.TradeAccountTypeCode).ToString()); // BT-X-290
+                        Writer.WriteValue(((int)traceAccountingAccount.TradeAccountTypeCode.Value).ToString()); // BT-X-290
                         Writer.WriteEndElement(); // !ram:TypeCode
                     }
 
@@ -1302,18 +1302,18 @@ namespace s2industries.ZUGFeRD
                 Writer.WriteOptionalElementString("ram", "LineID", document.LineID, subProfile); // BT-X-29
             }
 
-            if (document.TypeCode != AdditionalReferencedDocumentTypeCode.Unknown)
+            if (document.TypeCode.HasValue)
             {
-                Writer.WriteElementString("ram", "TypeCode", document.TypeCode.EnumValueToString());
+                Writer.WriteElementString("ram", "TypeCode", document.TypeCode.Value.EnumValueToString());
             }
 
-            if (document.ReferenceTypeCode != ReferenceTypeCodes.Unknown)
+            if (document.ReferenceTypeCode.HasValue)
             {
                 // CII-DT-024: ReferenceTypeCode is only allowed in BT-18-00 and BT-128-00 for InvoiceDataSheet
                 if (((parentElement == "BT-18-00" || parentElement == "BT-128-00") && document.TypeCode == AdditionalReferencedDocumentTypeCode.InvoiceDataSheet)
                     || parentElement == "BG-X-3")
                 {
-                    Writer.WriteOptionalElementString("ram", "ReferenceTypeCode", document.ReferenceTypeCode.EnumToString()); // BT-128-1, BT-18-1, BT-X-32
+                    Writer.WriteOptionalElementString("ram", "ReferenceTypeCode", document.ReferenceTypeCode.Value.EnumToString()); // BT-128-1, BT-18-1, BT-X-32
                 }
             }
 

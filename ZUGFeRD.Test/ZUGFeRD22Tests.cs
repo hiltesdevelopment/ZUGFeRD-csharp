@@ -1297,7 +1297,7 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(id, loadedInvoice.AdditionalReferencedDocuments[0].ID);
             Assert.AreEqual(uriID, loadedInvoice.AdditionalReferencedDocuments[0].URIID);
             Assert.IsNull(loadedInvoice.AdditionalReferencedDocuments[0].LineID);
-            Assert.AreEqual(ReferenceTypeCodes.Unknown, loadedInvoice.AdditionalReferencedDocuments[0].ReferenceTypeCode);
+            Assert.IsNull(loadedInvoice.AdditionalReferencedDocuments[0].ReferenceTypeCode);
             Assert.AreEqual(AdditionalReferencedDocumentTypeCode.InvoiceDataSheet, loadedInvoice.AdditionalReferencedDocuments[0].TypeCode);
             // checks for 2nd document
             Assert.AreEqual("", loadedInvoice.AdditionalReferencedDocuments[1].Name);
@@ -1305,7 +1305,7 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(id+"2", loadedInvoice.AdditionalReferencedDocuments[1].ID);
             Assert.IsNull(loadedInvoice.AdditionalReferencedDocuments[1].URIID);
             Assert.IsNull(loadedInvoice.AdditionalReferencedDocuments[1].LineID);
-            Assert.AreEqual(ReferenceTypeCodes.PP, loadedInvoice.AdditionalReferencedDocuments[1].ReferenceTypeCode);
+            Assert.IsNull(loadedInvoice.AdditionalReferencedDocuments[1].ReferenceTypeCode);
         } // !TestAdditionalReferencedDocument()
 
 
@@ -3058,6 +3058,18 @@ namespace s2industries.ZUGFeRD.Test
             Assert.IsNotNull(desc.GetTradePaymentTerms().First().Percentage);
             Assert.AreEqual(2m, desc.GetTradePaymentTerms().First().Percentage);
         } // !TestSpecifiedTradePaymentTermsCalculationPercent()
+
+        [TestMethod]
+        public void TestTradeLineItemUnitChargeFreePackageQuantity()
+        {
+            string path = @"..\..\..\..\documentation\zugferd23en\Examples\4. EXTENDED\EXTENDED_Warenrechnung\factur-x.xml";
+            path = _makeSurePathIsCrossPlatformCompatible(path);
+
+            InvoiceDescriptor desc = InvoiceDescriptor.Load(path);
+            Assert.IsNull(desc.GetTradeLineItems().First().UnitQuantity);
+            Assert.IsNull(desc.GetTradeLineItems().First().ChargeFreeQuantity);
+            Assert.IsNotNull(desc.GetTradeLineItems().First().PackageQuantity);
+        } // !TestTradeLineItemUnitChargeFreePackageQuantity()
 
         [TestMethod]
         public void TestApplicableTradeDeliveryTermsExists()
