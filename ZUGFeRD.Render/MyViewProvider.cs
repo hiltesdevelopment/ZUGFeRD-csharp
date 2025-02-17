@@ -16,39 +16,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Primitives;
 
-namespace s2industries.ZUGFeRD
+namespace s2industries.ZUGFeRD.Render
 {
-    /// <summary>
-    /// Used in BT-X-8
-    /// </summary>
-    public enum LineStatusReasonCodes
+    internal class MyViewProvider : IFileProvider
     {
-        /// <summary>
-        /// Unknown/ invalid line status code
-        /// </summary>
-        Unknown,
+        public IDirectoryContents GetDirectoryContents(string subpath)
+        {
+            throw new System.NotImplementedException();
+        }
 
-        /// <summary>
-        /// Detail
-        /// 
-        /// Regular item position (standard case)
-        /// </summary>
-        DETAIL,
+        public IFileInfo GetFileInfo(string subpath)
+        {
+            throw new System.NotImplementedException();
+        }
 
-        /// <summary>
-        /// Subtotal
-        /// </summary>
-        GROUP,
-
-        /// <summary>
-        /// Solely information
-        /// 
-        /// For information only
-        /// </summary>
-        INFORMATION
+        public IChangeToken Watch(string filter)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

@@ -18,37 +18,18 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Html;
 
-namespace s2industries.ZUGFeRD
+namespace s2industries.ZUGFeRD.Render
 {
-    /// <summary>
-    /// Used in BT-X-8
-    /// </summary>
-    public enum LineStatusReasonCodes
+    public class HtmlHelper
     {
-        /// <summary>
-        /// Unknown/ invalid line status code
-        /// </summary>
-        Unknown,
-
-        /// <summary>
-        /// Detail
-        /// 
-        /// Regular item position (standard case)
-        /// </summary>
-        DETAIL,
-
-        /// <summary>
-        /// Subtotal
-        /// </summary>
-        GROUP,
-
-        /// <summary>
-        /// Solely information
-        /// 
-        /// For information only
-        /// </summary>
-        INFORMATION
+        public HtmlString Raw(string source)
+        {
+            return new HtmlString(source);
+        }
     }
 }
