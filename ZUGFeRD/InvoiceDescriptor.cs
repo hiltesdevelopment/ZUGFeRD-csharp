@@ -1258,7 +1258,7 @@ namespace s2industries.ZUGFeRD
         /// <param name="exemptionReasonCode">Tax exemption reason code</param>
         /// <param name="exemptionReason">Tax exemption reason text</param>
         /// <param name="lineTotalBasisAmount">Line total base amount for tax calculation</param>
-        public void AddApplicableTradeTax(decimal basisAmount,
+        public Tax AddApplicableTradeTax(decimal basisAmount,
             decimal percent,
             decimal taxAmount,
             TaxTypes typeCode,
@@ -1286,6 +1286,7 @@ namespace s2industries.ZUGFeRD
             }
 
             this.Taxes.Add(tax);
+            return tax;
         } // !AddApplicableTradeTax()
 
 
