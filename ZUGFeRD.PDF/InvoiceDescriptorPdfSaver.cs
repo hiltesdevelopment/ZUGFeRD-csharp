@@ -108,7 +108,7 @@ namespace s2industries.ZUGFeRD.PDF
             }
             catch (Exception ex)
             {
-                throw new SaveFailedException();
+                throw new SaveFailedException(ex);
             }
 
             string safeDocumentTitle = "Invoice";
@@ -200,16 +200,24 @@ namespace s2industries.ZUGFeRD.PDF
 
             var dateTimeNow = DateTime.UtcNow;
             var conformanceLevelName = profile.GetXMPName();
-            var xmpVersion = "";
-            
+
+            var xmpVersion = "";            
             switch (version)
             {
                 case ZUGFeRDVersion.Version1: xmpVersion = "1.0"; break;
-                case ZUGFeRDVersion.Version20: xmpVersion = "2.0"; break;
-                case ZUGFeRDVersion.Version23: xmpVersion = "2.3"; break;
+                case ZUGFeRDVersion.Version20: xmpVersion = "2p0"; break;
+                case ZUGFeRDVersion.Version23: xmpVersion = "1.0"; break; // ZUGFeRD 2.3 = Factur-X 1.0
             }
 
-            string pdfMetadataTemplate = System.Text.Encoding.Default.GetString(_LoadEmbeddedResource("s2industries.ZUGFeRD.PDF.Resources.PdfMedatadataTemplate.xml"));
+            var metadataResource = "";
+            switch (version)
+            {
+                case ZUGFeRDVersion.Version1: metadataResource = "s2industries.ZUGFeRD.PDF.Resources.PdfMetadataTemplate-1.0.xml"; break;
+                case ZUGFeRDVersion.Version20: metadataResource = "s2industries.ZUGFeRD.PDF.Resources.PdfMetadataTemplate-1.0.xml"; break;
+                case ZUGFeRDVersion.Version23: metadataResource = "s2industries.ZUGFeRD.PDF.Resources.PdfMetadataTemplate-2.3.xml"; break;
+            }
+
+            string pdfMetadataTemplate = System.Text.Encoding.Default.GetString(_LoadEmbeddedResource(metadataResource));
             var xmpmeta = pdfMetadataTemplate
                 .Replace("{{InvoiceFilename}}", invoiceFilename)
                 .Replace("{{CreationDate}}", _FormatXMPDateTime(dateTimeNow))
@@ -288,9 +296,9 @@ namespace s2industries.ZUGFeRD.PDF
             {
                 outputDocument.Save(memoryStream);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw new SaveFailedException();
+                throw new SaveFailedException(ex);
             }
             memoryStream.Seek(0, SeekOrigin.Begin);
             return memoryStream;
@@ -461,6 +469,8 @@ namespace s2industries.ZUGFeRD.PDF
         private static byte[] _LoadEmbeddedResource(string path)
         {
             var assembly = Assembly.GetExecutingAssembly();
+
+            string[] data = assembly.GetManifestResourceNames();
 
             using (Stream stream = assembly.GetManifestResourceStream(path))
             {
