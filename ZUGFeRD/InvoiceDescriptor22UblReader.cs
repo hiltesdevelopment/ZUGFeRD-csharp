@@ -197,6 +197,8 @@ namespace s2industries.ZUGFeRD
                 };
             }
 
+            retval.SellerTaxRepresentative = _nodeAsParty(doc.DocumentElement, "//cac:TaxRepresentativeParty/cac:Party", nsmgr);
+
             //Get all referenced and embedded documents (BG-24)
             // TODO //XmlNodeList referencedDocNodes = doc.SelectNodes(".//ram:ApplicableHeaderTradeAgreement/ram:AdditionalReferencedDocument", nsmgr);
             //foreach (XmlNode referenceNode in referencedDocNodes)
@@ -775,6 +777,11 @@ namespace s2industries.ZUGFeRD
             if (string.IsNullOrWhiteSpace(retval.Name))
             {
                 retval.Name = XmlUtils.NodeAsString(node, "cac:PartyLegalEntity/cbc:RegistrationName", nsmgr);
+            }
+
+            if (string.IsNullOrWhiteSpace(retval.Description))
+            {
+                retval.Description = XmlUtils.NodeAsString(node, "cac:PartyLegalEntity/cbc:CompanyLegalForm", nsmgr);
             }
 
             if (string.IsNullOrWhiteSpace(retval.ContactName))
