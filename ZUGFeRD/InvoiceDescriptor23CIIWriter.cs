@@ -806,12 +806,12 @@ namespace s2industries.ZUGFeRD
             #region DespatchAdviceReferencedDocument
             if (this.Descriptor.DespatchAdviceReferencedDocument != null)
             {
-                Writer.WriteStartElement("ram", "DespatchAdviceReferencedDocument");
+                Writer.WriteStartElement("ram", "DespatchAdviceReferencedDocument", Profile.Extended);
                 Writer.WriteElementString("ram", "IssuerAssignedID", this.Descriptor.DespatchAdviceReferencedDocument.ID);
 
                 if (this.Descriptor.DespatchAdviceReferencedDocument.IssueDateTime.HasValue)
                 {
-                    Writer.WriteStartElement("ram", "FormattedIssueDateTime");
+                    Writer.WriteStartElement("ram", "FormattedIssueDateTime", Profile.Extended);
                     Writer.WriteStartElement("qdt", "DateTimeString");
                     Writer.WriteAttributeString("format", "102");
                     Writer.WriteValue(_formatDate(this.Descriptor.DespatchAdviceReferencedDocument.IssueDateTime.Value));
