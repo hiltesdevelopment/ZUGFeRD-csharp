@@ -48,7 +48,6 @@ namespace s2industries.ZUGFeRD
             }
         } // !ValidateAndPrint()
 
-
         public static ValidationResult Validate(InvoiceDescriptor descriptor, ZUGFeRDVersion version)
         {
             ValidationResult retval = new ValidationResult()
@@ -101,10 +100,9 @@ namespace s2industries.ZUGFeRD
             retval.Messages.Add("==> DONE!");
             retval.Messages.Add("Finished recalculating monetarySummation.lineTotal...");
             retval.Messages.Add("Adding tax amounts from invoice allowance charge...");
-
-            decimal allowanceTotal = 0.0m;
+            
             decimal chargeTotal = 0.0m;
-            foreach (TradeAllowanceCharge charge in descriptor.GetTradeAllowanceCharges())
+            foreach (TradeCharge charge in descriptor.GetTradeCharges())
             {
                 retval.Messages.Add(String.Format("==> added {0:0.00} to {1:0.00}%", -charge.Amount, charge.Tax.Percent));
 
@@ -113,15 +111,20 @@ namespace s2industries.ZUGFeRD
                     lineTotalPerTax.Add(charge.Tax.Percent, new decimal());
                 }
                 lineTotalPerTax[charge.Tax.Percent] -= charge.Amount;
+                chargeTotal += charge.Amount;
+            }
 
-                if (charge.ChargeIndicator == false)
+            decimal allowanceTotal = 0.0m;
+            foreach (TradeAllowance allowance in descriptor.GetTradeAllowances())
+            {
+                retval.Messages.Add(String.Format("==> added {0:0.00} to {1:0.00}%", -allowance.Amount, allowance.Tax.Percent));
+
+                if (!lineTotalPerTax.ContainsKey(allowance.Tax.Percent))
                 {
-                    allowanceTotal += charge.Amount;
+                    lineTotalPerTax.Add(allowance.Tax.Percent, new decimal());
                 }
-                else
-                {
-                    chargeTotal += charge.Amount;
-                }
+                lineTotalPerTax[allowance.Tax.Percent] -= allowance.Amount;
+                allowanceTotal += allowance.Amount;
             }
 
             retval.Messages.Add("Adding tax amounts from invoice service charge...");
@@ -157,25 +160,9 @@ namespace s2industries.ZUGFeRD
                                      ));
 
 
-            decimal taxBasisTotal = 0m;
-            foreach (Tax tax in descriptor.GetApplicableTradeTaxes())
-            {
-                taxBasisTotal += tax.BasisAmount;
-            }
-
-            decimal allowanceTotalSummedPerTradeAllowanceCharge = 0m;
-            decimal chargesTotalSummedPerTradeAllowanceCharge = 0m;
-            foreach (TradeAllowanceCharge allowance in descriptor.GetTradeAllowanceCharges())
-            {
-                if (allowance.ChargeIndicator == true)
-                {
-                    chargesTotalSummedPerTradeAllowanceCharge += allowance.ActualAmount;
-                }
-                else
-                {
-                    allowanceTotalSummedPerTradeAllowanceCharge += allowance.ActualAmount;
-                }
-            }
+            decimal taxBasisTotal = descriptor.GetApplicableTradeTaxes().Sum(t => t.BasisAmount);
+            decimal allowanceTotalSummedPerTradeAllowanceCharge = descriptor.GetTradeAllowances().Sum(a => a.ActualAmount);
+            decimal chargesTotalSummedPerTradeAllowanceCharge = descriptor.GetTradeCharges().Sum(c => c.ActualAmount);
 
             if (!descriptor.TaxTotalAmount.HasValue)
             {
@@ -241,7 +228,7 @@ namespace s2industries.ZUGFeRD
             }
 
             if (Math.Abs(chargesTotalSummedPerTradeAllowanceCharge - chargeTotal) < 0.01m)
-            { 
+            {
                 retval.Messages.Add(String.Format("trade.settlement.monetarySummation.chargeTotal  Message: Berechneter Wert ist wie vorhanden:[{0:0.0000}]", chargesTotalSummedPerTradeAllowanceCharge));
             }
             else
@@ -251,29 +238,26 @@ namespace s2industries.ZUGFeRD
             }
 
             // version-specific validation
-            ValidationResult versionSpecificResults = new ValidationResult();
+            ValidationResult versionSpecificResults;
             switch (version)
             {
                 case ZUGFeRDVersion.Version1:
-                    {
-                        versionSpecificResults = _ValidateAccordingToVersion1(descriptor);
-                        break;
-                    }
+                {
+                    versionSpecificResults = _ValidateAccordingToVersion1(descriptor);
+                    break;
+                }
                 default:
-                    {
-                        break;
-                    }
+                {
+                    versionSpecificResults = new ValidationResult { IsValid = true };
+                    break;
+                }
             }
 
-            if (versionSpecificResults.IsValid == false)
-            {
-                retval.IsValid = false;                
-            }
+            retval.IsValid = retval.IsValid && versionSpecificResults.IsValid;
             retval.Messages.AddRange(versionSpecificResults.Messages);
 
             return retval;
         } // !Validate()
-
 
         private static ValidationResult _ValidateAccordingToVersion1(InvoiceDescriptor descriptor)
         {
@@ -305,7 +289,7 @@ namespace s2industries.ZUGFeRD
                 retval.IsValid = false;
                 retval.Messages.Add($"Global identifier scheme {descriptor.Buyer?.GlobalID?.SchemeID} is not supported for recipients (ShipTo) in ZUGFeRD 1.0");
             }
-            
+
             return retval;
         } // !_ValidateAccordingToVersion1()
     }
