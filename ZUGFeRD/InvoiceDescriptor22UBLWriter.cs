@@ -172,7 +172,7 @@ namespace s2industries.ZUGFeRD
                     {
                         Writer.WriteElementString("cbc", "IssueDate", _formatDate(invoiceReferencedDocument.IssueDateTime.Value, false, true));
                     }
-                    Writer.WriteEndElement(); // !ram:InvoiceDocumentReference
+                    Writer.WriteEndElement(); // !cac:InvoiceDocumentReference
                     break; // only one reference allowed in UBL
                 }
                 Writer.WriteEndElement(); // !cac:BillingReference
@@ -613,6 +613,13 @@ namespace s2industries.ZUGFeRD
             }
             Writer.WriteElementString("cbc", "ID", tradeLineItem.AssociatedDocument.LineID);
 
+            if (tradeLineItem.AssociatedDocument?.Notes?.Count > 0)
+            {
+                // BT-127
+                Writer.WriteStartElement("cbc", "Note");
+                Writer.WriteValue(String.Join(Environment.NewLine, tradeLineItem.AssociatedDocument.Notes.Select(n => n.Content)));
+                Writer.WriteEndElement(); // cbc:Note
+            }
 
             if (isInvoice)
             {
@@ -770,10 +777,10 @@ namespace s2industries.ZUGFeRD
             switch (specifiedTradeAllowanceCharge)
             {
                 case TradeAllowance allowance when allowance.ReasonCode != null:
-                    Writer.WriteOptionalElementString("ram", "ReasonCode", allowance.ReasonCode.EnumToString()); // BT-140
+                    Writer.WriteOptionalElementString("cbc", "AllowanceChargeReasonCode", allowance.ReasonCode.EnumToString()); // BT-140
                     break;
                 case TradeCharge charge when charge.ReasonCode != null:
-                    Writer.WriteOptionalElementString("ram", "ReasonCode", charge.ReasonCode.EnumToString()); // BT-145
+                    Writer.WriteOptionalElementString("cbc", "AllowanceChargeReasonCode", charge.ReasonCode.EnumToString()); // BT-145
                     break;
             }
             
@@ -1059,19 +1066,21 @@ namespace s2industries.ZUGFeRD
                 }
             }
         } // !_writeNotes()
-
+        
         private void _writeOptionalAmount(ProfileAwareXmlTextWriter writer, string prefix, string tagName, decimal? value, int numDecimals = 2, bool forceCurrency = false, Profile profile = Profile.Unknown)
         {
-            if (value.HasValue)
+            if (!value.HasValue)
             {
-                writer.WriteStartElement(prefix, tagName, profile);
-                if (forceCurrency)
-                {
-                    writer.WriteAttributeString("currencyID", this.Descriptor.Currency.EnumToString());
-                }
-                writer.WriteValue(_formatDecimal(value.Value, numDecimals));
-                writer.WriteEndElement(); // !tagName
+                return;
             }
+
+            writer.WriteStartElement(prefix, tagName, profile);
+            if (forceCurrency)
+            {
+                writer.WriteAttributeString("currencyID", this.Descriptor.Currency.EnumToString());
+            }
+            writer.WriteValue(_formatDecimal(value.Value, numDecimals));
+            writer.WriteEndElement(); // !tagName
         } // !_writeOptionalAmount()
 
         private int _encodeInvoiceType(InvoiceType type)
