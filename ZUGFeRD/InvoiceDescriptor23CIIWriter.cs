@@ -105,7 +105,7 @@ namespace s2industries.ZUGFeRD
             Writer.WriteStartElement("rsm", "ExchangedDocument");
             Writer.WriteElementString("ram", "ID", this.Descriptor.InvoiceNo); //Rechnungsnummer
             Writer.WriteOptionalElementString("ram", "Name", this.Descriptor.Name, Profile.Extended); //Dokumentenart (Freitext), ISO 15000-5:2014, Anhang B
-            Writer.WriteElementString("ram", "TypeCode", String.Format("{0}", _encodeInvoiceType(this.Descriptor.Type))); //Code für den Rechnungstyp
+            Writer.WriteElementString("ram", "TypeCode", String.Format("{0}", EnumExtensions.EnumToString<InvoiceType>(this.Descriptor.Type))); //Code für den Rechnungstyp
 
             if (this.Descriptor.InvoiceDate.HasValue)
             {
@@ -325,7 +325,7 @@ namespace s2industries.ZUGFeRD
                     #region AdditionalReferencedDocument (Extended)
 
                     //Detailangaben zu einer zusätzlichen Dokumentenreferenz
-                    foreach (AdditionalReferencedDocument document in tradeLineItem._AdditionalReferencedDocuments)
+                    foreach (AdditionalReferencedDocument document in tradeLineItem.AdditionalReferencedDocuments)
                     {
                         _writeAdditionalReferencedDocument(document, Profile.Extended, "BG-X-3");
                     } // !foreach(document)
@@ -447,7 +447,7 @@ namespace s2industries.ZUGFeRD
                 #region ApplicableTradeTax
                 Writer.WriteStartElement("ram", "ApplicableTradeTax", Profile.Basic | Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung); // BG-30
                 Writer.WriteElementString("ram", "TypeCode", tradeLineItem.TaxType.EnumToString()); // BT-151-0
-                Writer.WriteOptionalElementString("ram", "ExemptionReason", string.IsNullOrEmpty(tradeLineItem.TaxExemptionReason) ? _translateTaxCategoryCode(tradeLineItem.TaxCategoryCode) : tradeLineItem.TaxExemptionReason, Profile.Extended); // BT-X-96
+                Writer.WriteOptionalElementString("ram", "ExemptionReason", string.IsNullOrEmpty(tradeLineItem.TaxExemptionReason) ? _TranslateTaxCategoryCode(tradeLineItem.TaxCategoryCode) : tradeLineItem.TaxExemptionReason, Profile.Extended); // BT-X-96
                 Writer.WriteElementString("ram", "CategoryCode", tradeLineItem.TaxCategoryCode.EnumToString()); // BT-151
                 if (tradeLineItem.TaxExemptionReasonCode.HasValue)
                 {
@@ -845,7 +845,7 @@ namespace s2industries.ZUGFeRD
 
             if (!this.Descriptor.AnyCreditorFinancialAccount() && !this.Descriptor.AnyDebitorFinancialAccount())
             {
-                if ((this.Descriptor.PaymentMeans != null) && (this.Descriptor.PaymentMeans.TypeCode != PaymentMeansTypeCodes.Unknown))
+                if ((this.Descriptor.PaymentMeans != null) && this.Descriptor.PaymentMeans.TypeCode.HasValue)
                 {
                     Writer.WriteStartElement("ram", "SpecifiedTradeSettlementPaymentMeans", ALL_PROFILES ^ Profile.Minimum); // BG-16
                     Writer.WriteElementString("ram", "TypeCode", this.Descriptor.PaymentMeans.TypeCode.EnumToString(), ALL_PROFILES ^ Profile.Minimum);
@@ -867,7 +867,7 @@ namespace s2industries.ZUGFeRD
                 {
                     Writer.WriteStartElement("ram", "SpecifiedTradeSettlementPaymentMeans", ALL_PROFILES ^ Profile.Minimum);
 
-                    if ((this.Descriptor.PaymentMeans != null) && (this.Descriptor.PaymentMeans.TypeCode != PaymentMeansTypeCodes.Unknown))
+                    if ((this.Descriptor.PaymentMeans != null) && this.Descriptor.PaymentMeans.TypeCode.HasValue)
                     {
                         Writer.WriteElementString("ram", "TypeCode", this.Descriptor.PaymentMeans.TypeCode.EnumToString(), ALL_PROFILES ^ Profile.Minimum);
                         Writer.WriteOptionalElementString("ram", "Information", this.Descriptor.PaymentMeans.Information, PROFILE_COMFORT_EXTENDED_XRECHNUNG);
@@ -901,7 +901,7 @@ namespace s2industries.ZUGFeRD
                 {
                     Writer.WriteStartElement("ram", "SpecifiedTradeSettlementPaymentMeans", ALL_PROFILES ^ Profile.Minimum); // BG-16
 
-                    if ((this.Descriptor.PaymentMeans != null) && (this.Descriptor.PaymentMeans.TypeCode != PaymentMeansTypeCodes.Unknown))
+                    if ((this.Descriptor.PaymentMeans != null) && this.Descriptor.PaymentMeans.TypeCode.HasValue)
                     {
                         Writer.WriteElementString("ram", "TypeCode", this.Descriptor.PaymentMeans.TypeCode.EnumToString(), ALL_PROFILES ^ Profile.Minimum);
                         Writer.WriteOptionalElementString("ram", "Information", this.Descriptor.PaymentMeans.Information, PROFILE_COMFORT_EXTENDED_XRECHNUNG);
@@ -984,17 +984,18 @@ namespace s2industries.ZUGFeRD
                 case Profile.XRechnung:
                     if (Descriptor.GetTradePaymentTerms().Count > 0 || !string.IsNullOrWhiteSpace(Descriptor.PaymentMeans?.SEPAMandateReference))
                     {
+                        Writer.WriteStartElement("ram", "SpecifiedTradePaymentTerms");
+
+                        var sbPaymentNotes = new StringBuilder();
+                        DateTime? dueDate = null;
                         foreach (PaymentTerms paymentTerms in this.Descriptor.GetTradePaymentTerms())
-                        {
-                            Writer.WriteStartElement("ram", "SpecifiedTradePaymentTerms");
-                            var sbPaymentNotes = new StringBuilder();
-                            DateTime? dueDate = null;
+                        {                                                        
 
                             // every line break must be a valid xml line break.
                             // if a note already exists, append a valid line break.
                             if (sbPaymentNotes.Length > 0)
                             {
-                                sbPaymentNotes.Append(XmlConstants.XmlNewLine);
+                                sbPaymentNotes.Append("\n");
                             }
 
                             if (paymentTerms.PaymentTermsType.HasValue)
@@ -1003,7 +1004,7 @@ namespace s2industries.ZUGFeRD
                                 if (!string.IsNullOrWhiteSpace(paymentTerms.Description))
                                 {
                                     sbPaymentNotes.Append(paymentTerms.Description);
-                                    sbPaymentNotes.Append(XmlConstants.XmlNewLine);
+                                    sbPaymentNotes.Append("\n");
                                 }
 
                                 if (paymentTerms.PaymentTermsType.HasValue && paymentTerms.DueDays.HasValue && paymentTerms.Percentage.HasValue)
@@ -1019,26 +1020,30 @@ namespace s2industries.ZUGFeRD
                             {
                                 if (!string.IsNullOrWhiteSpace(paymentTerms.Description))
                                 {
-                                    sbPaymentNotes.Append(paymentTerms.Description);
+                                    sbPaymentNotes.Append(paymentTerms.Description.Trim());
                                 }
                             }
-                            dueDate = dueDate ?? paymentTerms.DueDate;
-
-                            Writer.WriteOptionalElementString("ram", "Description", sbPaymentNotes.ToString());
-                            if (dueDate.HasValue)
-                            {
-                                Writer.WriteStartElement("ram", "DueDateDateTime");
-                                _writeElementWithAttributeWithPrefix(Writer, "udt", "DateTimeString", "format", "102", _formatDate(dueDate.Value));
-                                Writer.WriteEndElement(); // !ram:DueDateDateTime
-                            }
-
-                            // BT-89 is only required/allowed on DirectDebit (BR-DE-29)
-                            if (this.Descriptor.PaymentMeans?.TypeCode == PaymentMeansTypeCodes.DirectDebit || this.Descriptor.PaymentMeans?.TypeCode == PaymentMeansTypeCodes.SEPADirectDebit)
-                            {
-                                Writer.WriteOptionalElementString("ram", "DirectDebitMandateID", Descriptor.PaymentMeans?.SEPAMandateReference);
-                            }
-                            Writer.WriteEndElement();
+                            dueDate = dueDate ?? paymentTerms.DueDate;                            
                         }
+
+                        Writer.WriteStartElement("ram", "Description");
+                        Writer.WriteRawString(sbPaymentNotes.ToString().TrimEnd()); // BT-20
+                        Writer.WriteRawString("\n");
+                        Writer.WriteEndElement(); // !ram:Description
+                        if (dueDate.HasValue)
+                        {
+                            Writer.WriteStartElement("ram", "DueDateDateTime");
+                            _writeElementWithAttributeWithPrefix(Writer, "udt", "DateTimeString", "format", "102", _formatDate(dueDate.Value));
+                            Writer.WriteEndElement(); // !ram:DueDateDateTime
+                        }
+
+                        // BT-89 is only required/allowed on DirectDebit (BR-DE-29)
+                        if (this.Descriptor.PaymentMeans?.TypeCode == PaymentMeansTypeCodes.DirectDebit || this.Descriptor.PaymentMeans?.TypeCode == PaymentMeansTypeCodes.SEPADirectDebit)
+                        {
+                            Writer.WriteOptionalElementString("ram", "DirectDebitMandateID", Descriptor.PaymentMeans?.SEPAMandateReference);
+                        }
+
+                        Writer.WriteEndElement(); // !ram:SpecifiedTradePaymentTerms
                     }
                     break;
                 case Profile.Extended:
@@ -1092,7 +1097,7 @@ namespace s2industries.ZUGFeRD
                                 Writer.WriteEndElement(); // !ram:ApplicableTradePaymentPenaltyTerms
                             }
                         }
-                        Writer.WriteEndElement();
+                        Writer.WriteEndElement(); // !ram:SpecifiedTradePaymentTerms
                     }
                     if (this.Descriptor.GetTradePaymentTerms().Count == 0 && !string.IsNullOrWhiteSpace(Descriptor.PaymentMeans?.SEPAMandateReference))
                     {
@@ -1598,12 +1603,12 @@ namespace s2industries.ZUGFeRD
             notes?.ForEach(note =>
             {
                 writer.WriteStartElement("ram", "IncludedNote", profile);
-                if (note.ContentCode != ContentCodes.Unknown)
+                if (note.ContentCode.HasValue)
                 {
                     writer.WriteElementString("ram", "ContentCode", note.ContentCode.EnumToString());
                 }
                 writer.WriteOptionalElementString("ram", "Content", note.Content);
-                if (note.SubjectCode != SubjectCodes.Unknown)
+                if (note.SubjectCode.HasValue)
                 {
                     writer.WriteElementString("ram", "SubjectCode", note.SubjectCode.EnumToString());
                 }
@@ -1835,8 +1840,13 @@ namespace s2industries.ZUGFeRD
         } // !_writeOptionalContact()
 
 
-        private string _translateTaxCategoryCode(TaxCategoryCodes taxCategoryCode)
+        private string _TranslateTaxCategoryCode(TaxCategoryCodes? taxCategoryCode)
         {
+            if (!taxCategoryCode.HasValue)
+            {
+                return null;
+            }
+
             switch (taxCategoryCode)
             {
                 case TaxCategoryCodes.A:
@@ -1866,9 +1876,7 @@ namespace s2industries.ZUGFeRD
                 case TaxCategoryCodes.S:
                     return "Normalsatz";
                 case TaxCategoryCodes.Z:
-                    return "nach dem Nullsatz zu versteuernde Waren";
-                case TaxCategoryCodes.Unknown:
-                    break;
+                    return "nach dem Nullsatz zu versteuernde Waren";                
                 case TaxCategoryCodes.D:
                     break;
                 case TaxCategoryCodes.F:
