@@ -720,7 +720,7 @@ namespace s2industries.ZUGFeRD
         /// <param name="legalOrganization">Optional legal organization details</param>
         /// <param name="countrySubdivisonName">Optional country subdivision name</param>
         /// <param name="addressLine3">Optional additional address line</param>
-        public void SetBuyer(string name, string postcode, string city, string street, CountryCodes country, string id = null,
+        public void SetBuyer(string name, string postcode, string city, string street, CountryCodes? country = null, string id = null,
                              GlobalID globalID = null, string receiver = "", LegalOrganization legalOrganization = null, string countrySubdivisonName = null, string addressLine3 = null)
         {
             this.Buyer = new Party()
@@ -756,7 +756,7 @@ namespace s2industries.ZUGFeRD
         /// <param name="description">Optional seller description</param>
         /// <param name="countrySubdivisonName">Optional country subdivision name</param>
         /// <param name="addressLine3">Optional additional address line</param>
-        public void SetSeller(string name, string postcode, string city, string street, CountryCodes country, string id = null,
+        public void SetSeller(string name, string postcode, string city, string street, CountryCodes? country = null, string id = null,
                               GlobalID globalID = null, LegalOrganization legalOrganization = null, string description = null, string countrySubdivisonName = null, string addressLine3 = null)
         {
             this.Seller = new Party()
@@ -1162,7 +1162,7 @@ namespace s2industries.ZUGFeRD
         /// <param name="reasonCode">Optional reason code</param>
         public void AddTradeCharge(decimal? basisAmount, CurrencyCodes currency, decimal actualAmount,
                                    decimal? chargePercentage,
-                                   string reason, TaxTypes taxTypeCode, TaxCategoryCodes? taxCategoryCode, decimal taxPercent,
+                                   string reason, TaxTypes taxTypeCode, TaxCategoryCodes taxCategoryCode, decimal taxPercent,
                                    ChargeReasonCodes? reasonCode = null)
         {
             _AddTradeCharge(basisAmount, currency, actualAmount, chargePercentage, reason, taxTypeCode, taxCategoryCode, taxPercent, reasonCode);
