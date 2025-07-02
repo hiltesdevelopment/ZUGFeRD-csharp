@@ -16,8 +16,11 @@
 	<EmbedUntrackedSources>true</EmbedUntrackedSources>
 	<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>	
     <RootNamespace>s2industries.ZUGFeRD.PDF</RootNamespace>	
-    <Version>17.4.1</Version>	
-    <PackageReleaseNotes>17.4.1
+    <Version>17.4.2</Version>	
+    <PackageReleaseNotes>17.4.2
+* Added customer fontinfo code
+
+17.4.1
 * Fix for synchronous PDF loading and saving
 
 17.4.0
@@ -40,7 +43,7 @@
 * fully compliant XMP metadata
 </PackageReleaseNotes>	
     <AssemblyName>s2industries.ZUGFeRD.PDF</AssemblyName>	
-    <AssemblyVersion>17.4.1</AssemblyVersion>	
+    <AssemblyVersion>17.4.2</AssemblyVersion>	
     <Description>ZUGFeRD and it's successor Factur-X/ XRechnung are initiatives from German (respectively European) government to foster electronic invoices.
 It is based on using PDF/A-3 to store invoices along with embedded xml descriptor for easy processing.
 A special favor is the so-called XRechnung which is also supported by this library.
@@ -66,7 +69,6 @@ This library allows to load and create PDF/A files.
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FontInfo" Version="1.2.0" />
     <PackageReference Include="PDFsharp-extended" Version="1.2.0-preview-1" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.0-preview.5.25277.114" />
     <PackageReference Include="ZUGFeRD-csharp" Version="17.4.0" />
