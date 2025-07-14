@@ -38,8 +38,8 @@ namespace s2industries.ZUGFeRD.Test
             InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
             desc.TradeLineItems.Clear();
 
-            desc.AddTradeLineItem("Item1", QuantityCodes.C62);
-            desc.AddTradeLineItem("Item2", QuantityCodes.C62);
+            desc.AddTradeLineItem("Item1", 0m, QuantityCodes.C62);
+            desc.AddTradeLineItem("Item2", 0m, QuantityCodes.C62);
 
             Assert.AreEqual(desc.TradeLineItems[0].AssociatedDocument.LineID, "1");
             Assert.AreEqual(desc.TradeLineItems[1].AssociatedDocument.LineID, "2");
@@ -156,8 +156,8 @@ namespace s2industries.ZUGFeRD.Test
         {
             InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
             desc.TradeLineItems.Clear();
-            desc.AddTradeLineItem(lineID: "item-01", "Item1", QuantityCodes.C62);
-            desc.AddTradeLineItem(lineID: "item-02", "Item2", QuantityCodes.C62);
+            desc.AddTradeLineItem(lineID: "item-01", "Item1", 0m, QuantityCodes.C62);
+            desc.AddTradeLineItem(lineID: "item-02", "Item2", 0m, QuantityCodes.C62);
 
             Assert.AreEqual(desc.TradeLineItems[0].AssociatedDocument.LineID, "item-01");
             Assert.AreEqual(desc.TradeLineItems[1].AssociatedDocument.LineID, "item-02");
@@ -305,7 +305,7 @@ namespace s2industries.ZUGFeRD.Test
 
             InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
 
-            TradeLineItem line = desc.AddTradeLineItem("DeliveryNoteReferencedDocument-Text", QuantityCodes.C62);
+            TradeLineItem line = desc.AddTradeLineItem("DeliveryNoteReferencedDocument-Text", 0m, QuantityCodes.C62);
             line.SetDeliveryNoteReferencedDocument(deliveryNoteNumber, deliveryNoteDate, deliveryNoteLineID);
 
             MemoryStream ms = new MemoryStream();
@@ -335,7 +335,7 @@ namespace s2industries.ZUGFeRD.Test
 
             InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
 
-            TradeLineItem line = desc.AddTradeLineItem("ContractReferencedDocument-Text", QuantityCodes.C62);
+            TradeLineItem line = desc.AddTradeLineItem("ContractReferencedDocument-Text", 0m, QuantityCodes.C62);
             line.SetContractReferencedDocument(contractNumber, contractDate, contractLineID);
 
             MemoryStream ms = new MemoryStream();
@@ -507,8 +507,6 @@ namespace s2industries.ZUGFeRD.Test
         {
             decimal grossPrice = 10.1m;
             decimal netPrice = 10.0m;
-            decimal discountPercent = 10.0m;
-            decimal discountAmount = 0.1m;
 
             InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
             desc.TradeLineItems.Clear();
@@ -561,7 +559,7 @@ namespace s2industries.ZUGFeRD.Test
                                                        grossPrice, // gross unit price
                                                        1);
 
-            item.AddTradeAllowanceCharge(true, CurrencyCodes.EUR, grossPrice, discountAmount, "Discount", AllowanceReasonCodes.Discount);
+            item.AddTradeAllowance(CurrencyCodes.EUR, grossPrice, discountAmount, "Discount", AllowanceReasonCodes.Discount);
 
             MemoryStream ms = new MemoryStream();
             desc.Save(ms, ZUGFeRDVersion.Version23, Profile.Extended);
@@ -856,5 +854,103 @@ namespace s2industries.ZUGFeRD.Test
 
             Assert.ThrowsException<IllegalCharacterException>(() => desc.Save(invoiceStream, version, profile, format));
         } // !TestInvalidXml()
+
+
+
+        [TestMethod]
+        [DataRow(ZUGFeRDVersion.Version1, ZUGFeRDFormats.CII, Profile.Extended)]
+        [DataRow(ZUGFeRDVersion.Version20, ZUGFeRDFormats.CII, Profile.Extended)]
+        [DataRow(ZUGFeRDVersion.Version23, ZUGFeRDFormats.CII, Profile.Extended)]
+        public void TestGrossQuantity(ZUGFeRDVersion version, ZUGFeRDFormats format, Profile profile)
+        {
+            decimal? desiredNetUnitQuantity = 20.0m;
+            decimal? desiredGrossUnitQuantity = 23.0m;
+
+            InvoiceDescriptor desc = new InvoiceProvider().CreateInvoice();
+
+            foreach(TradeLineItem item in desc.TradeLineItems)
+            {
+                item.NetQuantity = desiredNetUnitQuantity;
+                item.GrossQuantity = desiredGrossUnitQuantity;
+            }
+
+            MemoryStream ms = new MemoryStream();
+            desc.Save(ms, version, profile, format);
+            desc.Save($"e:\\output_{version}.xml", version, profile, format);
+
+            InvoiceDescriptor loadedDescriptor = InvoiceDescriptor.Load(ms);
+            foreach (TradeLineItem item in loadedDescriptor.TradeLineItems)
+            {
+                Assert.IsNotNull(item.NetQuantity);
+                Assert.AreEqual(desiredNetUnitQuantity, item.NetQuantity);
+
+                Assert.IsNotNull(item.GrossQuantity);
+                Assert.AreEqual(desiredGrossUnitQuantity, item.GrossQuantity);
+            }
+        } // !TestGrossQuantity()
+
+
+
+        [TestMethod]
+        [DataRow(ZUGFeRDVersion.Version23, ZUGFeRDFormats.UBL, Profile.XRechnung)]
+        public void TestGrossQuantityForXRechnung(ZUGFeRDVersion version, ZUGFeRDFormats format, Profile profile)
+        {
+            decimal? desiredNetUnitQuantity = 20.0m;
+            decimal? desiredGrossUnitQuantity = 23.0m;
+
+            InvoiceDescriptor desc = new InvoiceProvider().CreateInvoice();
+
+            foreach(TradeLineItem item in desc.TradeLineItems)
+            {
+                item.NetQuantity = desiredNetUnitQuantity;
+                item.GrossQuantity = desiredGrossUnitQuantity;
+            }
+
+            MemoryStream ms = new MemoryStream();
+            desc.Save(ms, version, profile, format);
+            desc.Save($"e:\\output_{version}.xml", version, profile, format);
+
+            InvoiceDescriptor loadedDescriptor = InvoiceDescriptor.Load(ms);
+            foreach (TradeLineItem item in loadedDescriptor.TradeLineItems)
+            {
+                Assert.IsNotNull(item.NetQuantity);
+                Assert.AreEqual(desiredNetUnitQuantity, item.NetQuantity);
+
+                Assert.IsNull(item.GrossQuantity);
+            }
+        } // !TestGrossQuantityForXRechnung()
+
+
+
+        [TestMethod]
+        [DataRow(ZUGFeRDVersion.Version1, ZUGFeRDFormats.CII, Profile.Extended)]
+        [DataRow(ZUGFeRDVersion.Version20, ZUGFeRDFormats.CII, Profile.Extended)]
+        [DataRow(ZUGFeRDVersion.Version23, ZUGFeRDFormats.CII, Profile.Extended)]
+        [DataRow(ZUGFeRDVersion.Version23, ZUGFeRDFormats.UBL, Profile.XRechnung)]
+        public void TestWithoutGrossQuantity(ZUGFeRDVersion version, ZUGFeRDFormats format, Profile profile)
+        {
+            decimal? desiredNetUnitQuantity = 20.0m;
+            decimal? desiredGrossUnitQuantity = null;
+
+            InvoiceDescriptor desc = new InvoiceProvider().CreateInvoice();
+
+            foreach(TradeLineItem item in desc.TradeLineItems)
+            {
+                item.NetQuantity = desiredNetUnitQuantity;
+                item.GrossQuantity = desiredGrossUnitQuantity;
+            }
+
+            MemoryStream ms = new MemoryStream();
+            desc.Save(ms, version, profile, format);
+
+            InvoiceDescriptor loadedDescriptor = InvoiceDescriptor.Load(ms);
+            foreach (TradeLineItem item in loadedDescriptor.TradeLineItems)
+            {
+                Assert.IsNotNull(item.NetQuantity);
+                Assert.AreEqual(desiredNetUnitQuantity, item.NetQuantity);
+
+                Assert.IsNull(item.GrossQuantity);
+            }
+        } // !TestWithoutGrossQuantity()
     }
 }

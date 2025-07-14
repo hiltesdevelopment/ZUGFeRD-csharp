@@ -807,12 +807,12 @@ namespace s2industries.ZUGFeRD.Test
             fileStream.Close();
 
             // Modifiy trade line settlement data
-            TradeLineItem item0 = originalInvoiceDescriptor.AddTradeLineItem(name: String.Empty, QuantityCodes.C62);
+            TradeLineItem item0 = originalInvoiceDescriptor.AddTradeLineItem(name: String.Empty, 20.0m, QuantityCodes.C62);
 
             item0.AddApplicableProductCharacteristic("Description_1_1", "Value_1_1");
             item0.AddApplicableProductCharacteristic("Description_1_2", "Value_1_2");
 
-            TradeLineItem item1 = originalInvoiceDescriptor.AddTradeLineItem(name: String.Empty, QuantityCodes.C62);
+            TradeLineItem item1 = originalInvoiceDescriptor.AddTradeLineItem(name: String.Empty, 30.0m, QuantityCodes.C62);
             item1.AddApplicableProductCharacteristic("Description_2_1", "Value_2_1");
             item1.AddApplicableProductCharacteristic("Description_2_2", "Value_2_2");
 
@@ -854,12 +854,14 @@ namespace s2industries.ZUGFeRD.Test
             // Modifiy trade line settlement data
             originalInvoiceDescriptor.AddTradeLineItem(
                 name: String.Empty,
+                netUnitPrice: 0m,
                 QuantityCodes.C62,
                 billingPeriodStart: new DateTime(2020, 1, 1),
                 billingPeriodEnd: new DateTime(2021, 1, 1));
 
             originalInvoiceDescriptor.AddTradeLineItem(
                 name: String.Empty,
+                netUnitPrice: 0m,
                 QuantityCodes.C62,
                 billingPeriodStart: new DateTime(2021, 1, 1),
                 billingPeriodEnd: new DateTime(2022, 1, 1));
@@ -899,9 +901,9 @@ namespace s2industries.ZUGFeRD.Test
             // Modifiy trade line settlement data
             originalInvoiceDescriptor.AddTradeLineItem(
                 name: String.Empty,
+                netUnitPrice: 0m,
                 QuantityCodes.C62,
-                billedQuantity: 10,                
-                netUnitPrice: 1);
+                billedQuantity: 10);
 
             originalInvoiceDescriptor.IsTest = false;
 
@@ -929,7 +931,7 @@ namespace s2industries.ZUGFeRD.Test
             fileStream.Close();
 
             // Modifiy trade line settlement data
-            originalInvoiceDescriptor.AddTradeLineItem(name: String.Empty, QuantityCodes.C62)
+            originalInvoiceDescriptor.AddTradeLineItem(name: String.Empty, netUnitPrice: 0m, QuantityCodes.C62)
                 .SetChargeFreeQuantity(10, QuantityCodes.C62)
                 .SetPackageQuantity(20, QuantityCodes.C62);
 
@@ -1949,7 +1951,7 @@ namespace s2industries.ZUGFeRD.Test
             lineItem.AddAdditionalReferencedDocument("xyz", AdditionalReferencedDocumentTypeCode.ReferenceDocument, ReferenceTypeCodes.AAB, timestamp); // To align with PEPPOL-EN16931-R101, this shall be ignored
             lineItem.AddAdditionalReferencedDocument("abc", AdditionalReferencedDocumentTypeCode.InvoiceDataSheet, ReferenceTypeCodes.PP, timestamp);
 
-            lineItem.UnitQuantity = 3m;
+            lineItem.NetQuantity = 3m;
             lineItem.ActualDeliveryDate = timestamp;
 
             lineItem.ApplicableProductCharacteristics.Add(new ApplicableProductCharacteristic
@@ -2143,7 +2145,7 @@ namespace s2industries.ZUGFeRD.Test
             //GrossPriceProductTradePrice
             Assert.AreEqual(9.9m, loadedLineItem.GrossUnitPrice);
             Assert.AreEqual(QuantityCodes.H87, loadedLineItem.UnitCode);
-            Assert.AreEqual(3m, loadedLineItem.UnitQuantity);
+            Assert.AreEqual(3m, loadedLineItem.NetQuantity);
 
             //NetPriceProductTradePrice
             Assert.AreEqual(9.9m, loadedLineItem.NetUnitPrice);
@@ -2496,7 +2498,7 @@ namespace s2industries.ZUGFeRD.Test
         {
             InvoiceDescriptor invoice = _InvoiceProvider.CreateInvoice();
 
-            invoice.TradeLineItems[0].AddSpecifiedTradeAllowanceCharge(true, CurrencyCodes.EUR, 198m, 19.8m, 10m, "Discount 10%");
+            invoice.TradeLineItems[0].AddSpecifiedTradeAllowance(CurrencyCodes.EUR, 198m, 19.8m, 10m, "Discount 10%");
 
             MemoryStream ms = new MemoryStream();
             invoice.Save(ms, ZUGFeRDVersion.Version23, profile);
@@ -2523,14 +2525,15 @@ namespace s2industries.ZUGFeRD.Test
         {
             InvoiceDescriptor invoice = _InvoiceProvider.CreateInvoice();
 
-            invoice.TradeLineItems[0].AddSpecifiedTradeAllowanceCharge(true, CurrencyCodes.EUR, 198m, 19.8m, 10m, "Discount 10%");
+            invoice.TradeLineItems[0].AddSpecifiedTradeAllowance(CurrencyCodes.EUR, 198m, 19.8m, 10m, "Discount 10%");
 
             MemoryStream ms = new MemoryStream();
             invoice.Save(ms, ZUGFeRDVersion.Version23, Profile.Minimum);
             ms.Position = 0;
 
             InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(ms);
-            Assert.AreEqual(0, loadedInvoice.TradeLineItems[0].GetSpecifiedTradeAllowanceCharges().Count);
+            Assert.AreEqual(0, loadedInvoice.TradeLineItems[0].GetSpecifiedTradeAllowances().Count);
+            Assert.AreEqual(0, loadedInvoice.TradeLineItems[0].GetSpecifiedTradeCharges().Count);
         } // !TestSpecifiedTradeAllowanceChargeNotWrittenInMinimum()
 
 
@@ -3394,7 +3397,7 @@ namespace s2industries.ZUGFeRD.Test
             path = _makeSurePathIsCrossPlatformCompatible(path);
 
             InvoiceDescriptor desc = InvoiceDescriptor.Load(path);
-            Assert.IsNull(desc.GetTradeLineItems().First().UnitQuantity);
+            Assert.IsNull(desc.GetTradeLineItems().First().NetQuantity);
             Assert.IsNull(desc.GetTradeLineItems().First().ChargeFreeQuantity);
             Assert.IsNotNull(desc.GetTradeLineItems().First().PackageQuantity);
         } // !TestTradeLineItemUnitChargeFreePackageQuantity()

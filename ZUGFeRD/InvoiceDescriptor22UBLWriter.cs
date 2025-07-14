@@ -728,14 +728,14 @@ namespace s2industries.ZUGFeRD
             _Writer.WriteAttributeString("currencyID", this._Descriptor.Currency.EnumToString());
 			// UBL-DT-01 explicitly excempts the price amount from the 2 decimal rule for amount elements,
 			// thus allowing for 4 decimal places (needed for e.g. fuel prices)
-            _Writer.WriteValue(_formatDecimal(tradeLineItem.NetUnitPrice.Value, 4));
+            _Writer.WriteValue(_formatDecimal(tradeLineItem.NetUnitPrice, 4));
             _Writer.WriteEndElement();
 
-            if (tradeLineItem.UnitQuantity.HasValue)
+            if (tradeLineItem.NetQuantity.HasValue)
             {
                 _Writer.WriteStartElement("cbc", "BaseQuantity"); // BT-149
                 _Writer.WriteAttributeString("unitCode", tradeLineItem.UnitCode.EnumToString()); // BT-150
-                _Writer.WriteValue(_formatDecimal(tradeLineItem.UnitQuantity));
+                _Writer.WriteValue(_formatDecimal(tradeLineItem.NetQuantity));
                 _Writer.WriteEndElement();
             }
 
