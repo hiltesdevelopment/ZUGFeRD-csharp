@@ -53,7 +53,7 @@ namespace s2industries.ZUGFeRD
             long streamPosition = stream.Position;
 
             this._Descriptor = descriptor;
-            this._Writer = new ProfileAwareXmlTextWriter(stream, descriptor.Profile);
+            this._Writer = new ProfileAwareXmlTextWriter(stream, descriptor.Profile, options?.AutomaticallyCleanInvalidCharacters ?? false);
             this._Writer.SetNamespaces(new Dictionary<string, string>()
             {
                 { "a", "urn:un:unece:uncefact:data:standard:QualifiedDataType:100" },
@@ -542,9 +542,7 @@ namespace s2industries.ZUGFeRD
                 // TODO: TotalAllowanceChargeAmount
                 //Gesamtbetrag der Positionszu- und Abschläge
                 _Writer.WriteEndElement(); // ram:SpecifiedTradeSettlementMonetarySummation
-                #endregion
-
-                // TODO: InvoiceReferencedDocument, BG-X-48
+                #endregion                
 
                 #region AdditionalReferencedDocument
                 //Objektkennung auf Ebene der Rechnungsposition, BT-128-00
@@ -945,8 +943,7 @@ namespace s2industries.ZUGFeRD
             #endregion
 
             #region ApplicableTradeTax
-            //  11. ApplicableTradeTax (optional)
-            _WriteComment(_Writer, options, InvoiceCommentConstants.ApplicableTradeTaxComment);
+            //  11. ApplicableTradeTax (optional)            
             _writeOptionalTaxes(_Writer ,options);
             #endregion
 
