@@ -2459,8 +2459,13 @@ namespace s2industries.ZUGFeRD.Test
         } // !TestTradeAllowanceChargeWithExplicitPercentage()
 
 
-        [TestMethod]
-        public void TestWriteAndReadDespatchAdviceDocumentReferenceXRechnung()
+        [TestMethod]        
+        [DataRow(Profile.Basic)]
+        [DataRow(Profile.BasicWL)]
+        [DataRow(Profile.Comfort)]
+        [DataRow(Profile.Extended)]
+        [DataRow(Profile.XRechnung)]
+        public void TestWriteAndReadDespatchAdviceDocumentReferenceAllProfilesButMinimum(Profile profile)
         {
             InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
             string despatchAdviceNo = "421567982";
@@ -2468,12 +2473,38 @@ namespace s2industries.ZUGFeRD.Test
             desc.SetDespatchAdviceReferencedDocument(despatchAdviceNo, despatchAdviceDate);
 
             MemoryStream ms = new MemoryStream();
-            desc.Save(ms, ZUGFeRDVersion.Version23, Profile.XRechnung);
+            desc.Save(ms, ZUGFeRDVersion.Version23, profile);
+            ms.Seek(0, SeekOrigin.Begin);
+            InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(ms);
+
+            Assert.IsNotNull(loadedInvoice.DespatchAdviceReferencedDocument);
+
+            if (profile == Profile.Extended)
+            {
+                Assert.IsNotNull(loadedInvoice.DespatchAdviceReferencedDocument.IssueDateTime);
+            }
+            else
+            {
+                Assert.IsNull(loadedInvoice.DespatchAdviceReferencedDocument.IssueDateTime);
+            }
+        } //!TestWriteAndReadDespatchAdviceDocumentReferenceAllProfilesButMinimum()
+
+
+        [TestMethod]                
+        public void TestWriteAndReadDespatchAdviceDocumentReferenceMinimum()
+        {
+            InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
+            string despatchAdviceNo = "421567982";
+            DateTime despatchAdviceDate = new DateTime(2024, 5, 14);
+            desc.SetDespatchAdviceReferencedDocument(despatchAdviceNo, despatchAdviceDate);
+
+            MemoryStream ms = new MemoryStream();
+            desc.Save(ms, ZUGFeRDVersion.Version23, Profile.Minimum);
             ms.Seek(0, SeekOrigin.Begin);
             InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(ms);
 
             Assert.IsNull(loadedInvoice.DespatchAdviceReferencedDocument);
-        } //!TestWriteAndReadDespatchAdviceDocumentReference()
+        } //!TestWriteAndReadDespatchAdviceDocumentReferenceAllProfilesButMinimum()
 
 
         [TestMethod]
@@ -3644,5 +3675,19 @@ namespace s2industries.ZUGFeRD.Test
                 Assert.IsTrue(d2.GetReceivableSpecifiedTradeAccountingAccounts().Any(account => account.TradeAccountID == "BRE"));
             }
         } // !TestAccountingCost()
+
+
+        [TestMethod]
+        public void TestAlternateNamespace()
+        {
+            string path = @"..\..\..\..\demodata\zugferd22\zugferd_23_namespace.xml";
+            path = _makeSurePathIsCrossPlatformCompatible(path);
+
+            InvoiceDescriptor invoice = InvoiceDescriptor.Load(path);
+
+            // test random fields
+            Assert.AreEqual(invoice.InvoiceDate, new DateTime(2025, 10, 24));
+            Assert.AreEqual(invoice.InvoiceNo, "0000000016");
+        } // !TestAlternateNamespace()
     }
 }
