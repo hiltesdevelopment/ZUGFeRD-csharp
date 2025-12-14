@@ -43,20 +43,7 @@ namespace s2industries.ZUGFeRD
 
             this._Descriptor = descriptor;
             this._Writer = new ProfileAwareXmlTextWriter(stream, descriptor.Profile, options?.AutomaticallyCleanInvalidCharacters ?? false);
-            bool isInvoice = true;
-            if (this._Descriptor.Type == InvoiceType.Invoice || this._Descriptor.Type == InvoiceType.Correction)
-            {
-                // this is a duplicate, just to make sure: also a Correction is regarded as an Invoice
-                isInvoice = true;
-            }
-            else if (this._Descriptor.Type == InvoiceType.CreditNote)
-            {
-                isInvoice = false;
-            }
-            else
-            {
-                throw new NotImplementedException("Not implemented yet.");
-            }
+            bool isInvoice = _IsInvoiceAccordingToUBLSpecification(this._Descriptor.Type);
 
             Dictionary<string, string> namespaces = new Dictionary<string, string>()
             {
@@ -666,6 +653,23 @@ namespace s2industries.ZUGFeRD
             _WriteComment(_Writer, options, InvoiceCommentConstants.SpecifiedTradeSettlementLineMonetarySummationComment);
             _writeOptionalAmount(_Writer, "cbc", "LineExtensionAmount", tradeLineItem.LineTotalAmount, forceCurrency: true);
 
+            if (tradeLineItem.BillingPeriodStart.HasValue || tradeLineItem.BillingPeriodEnd.HasValue)
+            {
+                _Writer.WriteStartElement("cac", "InvoicePeriod");
+
+                if (tradeLineItem.BillingPeriodStart.HasValue)
+                {
+                    _Writer.WriteElementString("cbc", "StartDate", _formatDate(tradeLineItem.BillingPeriodStart.Value, false, true));
+                }
+
+                if (tradeLineItem.BillingPeriodEnd.HasValue)
+                {
+                    _Writer.WriteElementString("cbc", "EndDate", _formatDate(tradeLineItem.BillingPeriodEnd.Value, false, true));
+                }
+
+                _Writer.WriteEndElement(); // !InvoicePeriod
+            }
+
             if (tradeLineItem.AdditionalReferencedDocuments.Count > 0)
             {
                 foreach (AdditionalReferencedDocument document in tradeLineItem.AdditionalReferencedDocuments)
@@ -1134,5 +1138,49 @@ namespace s2industries.ZUGFeRD
         {
             throw new NotImplementedException();
         }
+
+
+        private bool _IsInvoiceAccordingToUBLSpecification(InvoiceType type)
+        {
+            switch (type)
+            {
+                case InvoiceType.RequestForPayment: // 71
+                case InvoiceType.DebitNoteRelatedToGoodsOrServices: // 80
+                case InvoiceType.MeteredServicesInvoice: // 82
+                case InvoiceType.DebitnoteRelatedToFinancialAdjustments: // 84
+                case InvoiceType.TaxNotification: // 102
+                case InvoiceType.FinalPaymentRequestBasedOnCompletionOfWork: // 218
+                case InvoiceType.PaymentRequestForCompletedUnits: // 219
+                case InvoiceType.PartialInvoice: // 326
+                case InvoiceType.CommercialInvoiceWithPackingList: // 331
+                case InvoiceType.Invoice: // 380
+                case InvoiceType.CommissionNote: // 382
+                case InvoiceType.DebitNote: // 383
+                case InvoiceType.Correction: // 384
+                case InvoiceType.PrepaymentInvoice: // 386
+                case InvoiceType.TaxInvoice: // 388
+                case InvoiceType.SelfBilledInvoice: // 389
+                case InvoiceType.FactoredInvoice: // 393
+                case InvoiceType.ConsignmentInvoice: // 395
+                case InvoiceType.ForwardersInvoiceDiscrepancyReport: // 553
+                case InvoiceType.InsurersInvoice: // 575
+                case InvoiceType.ForwardersInvoice: // 623
+                case InvoiceType.FreightInvoice: // 780
+                case InvoiceType.ClaimNotification: // 817
+                case InvoiceType.ConsularInvoice: // 870
+                case InvoiceType.PartialConstructionInvoice: // 875
+                case InvoiceType.PartialFinalConstructionInvoice: // 876
+                case InvoiceType.FinalConstructionInvoice: // 877
+                    return true;
+                case InvoiceType.CreditNoteRelatedToGoodsOrServices: // 81
+                case InvoiceType.CreditNoteRelatedToFinancialAdjustments: // 83
+                case InvoiceType.CreditNote: // 381
+                case InvoiceType.FactoredCreditNote: // 396
+                case InvoiceType.ForwardersCreditNote: // 532
+                    return false;
+                default:
+                    throw new NotImplementedException($"Invoice type {type} not implemented in UBL writer.");
+            }
+        } // !_IsInvoiceAccordingToUBLSpecification()
     }
 }
