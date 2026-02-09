@@ -51,6 +51,12 @@ namespace s2industries.ZUGFeRD
         /// </summary>
         [EnumStringValue("59")]
         _59,
+		
+		/// <summary>
+        /// batch
+        /// </summary>
+        [EnumStringValue("5B")]
+        _5B,
 
         /// <summary>
         /// Bulk pack
@@ -150,6 +156,11 @@ namespace s2industries.ZUGFeRD
         /// each: A unit of count defining the number of items regarded as separate units.
         /// </summary>
         EA,
+		
+	    /// <summary>
+        /// foot
+        /// </summary>
+        FOT,	
 
         /// <summary>
         /// gigajoule
@@ -185,6 +196,16 @@ namespace s2industries.ZUGFeRD
         /// A unit of count defining the number of persons.
         /// </summary>
         IE,
+		
+        /// <summary>
+        /// hundred metre
+        /// </summary>
+		JPS,
+		
+		/// <summary>
+        /// kilolitre
+        /// </summary>
+		K6,
 
         /// <summary>
         /// lux
@@ -254,6 +275,16 @@ namespace s2industries.ZUGFeRD
         /// Abkürzung: kW
         /// </summary>
         KWT,
+
+        /// <summary>
+        /// pound
+        /// </summary>
+        LBR,
+
+        /// <summary>
+        /// length
+        /// </summary>
+        LN,
 
         /// <summary>
         /// Pauschale
@@ -438,6 +469,11 @@ namespace s2industries.ZUGFeRD
         /// Quarter (of a year)
         /// </summary>
         QAN,
+		
+		/// <summary>
+        /// ream
+        /// </summary>
+        RM,
 
         /// <summary>
         /// Halbjahr
@@ -834,8 +870,8 @@ namespace s2industries.ZUGFeRD
         /// A type of containment box that serves as the outer shipping container, not otherwise specified as transport equipment.
         /// </summary>
         XOU,
-
-        /// <summary>
+		
+		/// <summary>
         /// Pouch
         /// </summary>
         XPO,
@@ -845,6 +881,16 @@ namespace s2industries.ZUGFeRD
         /// </summary>
         XPT,
 
+        /// <summary>
+        /// Spool
+        /// </summary>
+        XSO,
+		
+		/// <summary>
+        /// Bag, plastics film 
+        /// </summary>
+        XXD,
+        
         /// <summary>
         /// Pallet, wooden
         /// </summary>
@@ -864,6 +910,11 @@ namespace s2industries.ZUGFeRD
         /// Sack, multi-wall
         /// </summary>
         XMS,
+		
+		/// <summary>
+        /// Unit
+        /// </summary>
+        XUN,
 
         /// <summary>
         /// ton-force (US short)
