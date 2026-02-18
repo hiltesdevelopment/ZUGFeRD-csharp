@@ -21,7 +21,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
-using System.Xml.Linq;
 
 
 namespace s2industries.ZUGFeRD
@@ -697,7 +696,7 @@ namespace s2industries.ZUGFeRD
                 item.ReceivableSpecifiedTradeAccountingAccounts.Add(new ReceivableSpecifiedTradeAccountingAccount()
                 {
                     TradeAccountID = XmlUtils.NodeAsString(receivableSpecifiedTradeAccountingAccountNode, "./ram:ID", nsmgr),
-                    TradeAccountTypeCode = XmlUtils.NodeAsEnum<AccountingAccountTypeCodes>(receivableSpecifiedTradeAccountingAccountNode, ".//ram:TypeCode", nsmgr)
+                    TradeAccountTypeCode = EnumExtensions.StringToNullableEnum<AccountingAccountTypeCodes>(XmlUtils.NodeAsString(receivableSpecifiedTradeAccountingAccountNode, ".//ram:TypeCode", nsmgr))
                 });
                 break;
             }

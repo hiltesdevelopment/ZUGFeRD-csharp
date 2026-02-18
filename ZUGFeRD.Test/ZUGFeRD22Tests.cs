@@ -2180,6 +2180,7 @@ namespace s2industries.ZUGFeRD.Test
             var accountingAccount = loadedLineItem.ReceivableSpecifiedTradeAccountingAccounts.FirstOrDefault();
             Assert.IsNotNull(accountingAccount);
             Assert.AreEqual("987654", accountingAccount.TradeAccountID);
+            Assert.IsNull(accountingAccount.TradeAccountTypeCode);
 
 
             var lineItemTradeAllowanceCharge = loadedLineItem.GetTradeAllowanceCharges().FirstOrDefault(i => i.Reason == "Reason: UnitTest");
@@ -2448,7 +2449,7 @@ namespace s2industries.ZUGFeRD.Test
         } // !TestTradeAllowanceChargeWithExplicitPercentage()
 
 
-        [TestMethod]        
+        [TestMethod]
         [DataRow(Profile.Basic)]
         [DataRow(Profile.BasicWL)]
         [DataRow(Profile.Comfort)]
@@ -2479,7 +2480,7 @@ namespace s2industries.ZUGFeRD.Test
         } //!TestWriteAndReadDespatchAdviceDocumentReferenceAllProfilesButMinimum()
 
 
-        [TestMethod]                
+        [TestMethod]
         public void TestWriteAndReadDespatchAdviceDocumentReferenceMinimum()
         {
             InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
@@ -3643,7 +3644,7 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(desc.InvoiceNo, "0815-99-1-a");
             Assert.AreEqual(desc.InvoiceDate, new DateTime(2020, 06, 21));
         } // !TestRSMInvoice()        
-        
+
         [TestMethod]
         public void TestAccountingCost()
         {
