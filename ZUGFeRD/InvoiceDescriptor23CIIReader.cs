@@ -432,7 +432,7 @@ namespace s2industries.ZUGFeRD
                     penaltyDueDays = XmlUtils.NodeAsInt(node, ".//ram:ApplicableTradePaymentPenaltyTerms/ram:BasisPeriodMeasure", nsmgr);
                 DateTime? penaltyMaturityDate = XmlUtils.NodeAsDateTime(node, ".//ram:ApplicableTradePaymentPenaltyTerms/ram:BasisDateTime/udt:DateTimeString", nsmgr); // BT-X-276-0
                 decimal? penaltyBaseAmount = XmlUtils.NodeAsDecimal(node, ".//ram:ApplicableTradePaymentPenaltyTerms/ram:BasisAmount", nsmgr, null);
-                decimal? penaltyActualAmount = XmlUtils.NodeAsDecimal(node, ".//ram:ApplicableTradePaymentDiscountTerms/ram:ActualPenaltyAmount", nsmgr, null);
+                decimal? penaltyActualAmount = XmlUtils.NodeAsDecimal(node, ".//ram:ApplicableTradePaymentPenaltyTerms/ram:ActualPenaltyAmount", nsmgr, null);
                 PaymentTermsType? paymentTermsType = discountPercent.HasValue ? PaymentTermsType.Skonto :
                     penaltyPercent.HasValue ? PaymentTermsType.Verzug :
                     (PaymentTermsType?)null;
@@ -865,12 +865,14 @@ namespace s2industries.ZUGFeRD
 
             if (!String.IsNullOrWhiteSpace(lineTwo))
             {
+                retval.Street2 = lineOne;
                 retval.ContactName = lineOne;
                 retval.Street = lineTwo;
             }
             else
             {
                 retval.Street = lineOne;
+                retval.Street2 = null;
                 retval.ContactName = null;
             }
 

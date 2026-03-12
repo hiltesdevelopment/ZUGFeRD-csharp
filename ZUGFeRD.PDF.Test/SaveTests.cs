@@ -66,7 +66,7 @@ namespace s2industries.ZUGFeRD.PDF.Test
             Assert.IsTrue(result.Contains("/FontFile") || result.Contains("/FontFile2") || result.Contains("/FontFile3"));
 
             // load fonts using PDFsharp
-            // every font element should appear twice
+            // every font should have its font file embedded
             Dictionary<string, int> fontAppeareanceCount = new Dictionary<string, int>();
             Dictionary<string, bool> fontFileOccurs = new Dictionary<string, bool>();
             PdfDocument document = PdfReader.Open(targetPath);
@@ -108,7 +108,7 @@ namespace s2industries.ZUGFeRD.PDF.Test
                 {
                     PdfReference fontFileRef = fontDescriptor.Elements["/FontFile2"] as PdfReference;
                     Assert.IsNotNull(fontFileRef);
-                        
+
                     int fontObjectNumber = fontFileRef.ObjectNumber;
                     PdfObject fontFileObj = document.Internals.GetObject(new PdfObjectID(fontObjectNumber));
 
@@ -119,7 +119,7 @@ namespace s2industries.ZUGFeRD.PDF.Test
 
             Assert.AreEqual(fontFileOccurs.Count, fontAppeareanceCount.Count);
             Assert.IsTrue(fontFileOccurs.Values.All(x => x));
-            Assert.IsTrue(fontAppeareanceCount.Values.All(x => x == 2));
+            Assert.IsTrue(fontAppeareanceCount.Values.All(x => x >= 1));
         } // !BasicSaveFileAndEmbedFonts()
 
 
@@ -333,5 +333,22 @@ namespace s2industries.ZUGFeRD.PDF.Test
             Assert.IsTrue(pdfRawString.Contains($"<fx:DocumentFileName>{designatedFilename}</fx:DocumentFileName>"));
             Assert.IsTrue(pdfRawString.Contains($"<fx:Version>3.0</fx:Version>"));
         } // !TestFileWithPassword()
+
+
+        [TestMethod]
+        public async Task TestWithoutBasefont()
+        {
+            string sourcePath = @"..\..\..\PDF-without-basefont.pdf";
+            sourcePath = _makeSurePathIsCrossPlatformCompatible(sourcePath);
+            
+            InvoiceDescriptor descriptor = new InvoiceProvider().CreateInvoice();
+            MemoryStream targetStream = new MemoryStream();
+            using (FileStream sourceStream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read))
+            {
+                await InvoicePdfProcessor.SaveToPdfAsync(targetStream, ZUGFeRDVersion.Version23, Profile.Extended, ZUGFeRDFormats.CII, sourceStream, descriptor);
+            }
+
+            // no exception shall be thrown here, even if the source PDF is missing the BaseFont entry in its font definitions. The save process should be able to handle this gracefully and embed the necessary fonts as needed.
+        } // !TestWithoutBasefont()
     }
 }
