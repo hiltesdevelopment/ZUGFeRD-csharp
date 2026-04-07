@@ -3795,6 +3795,6 @@ namespace s2industries.ZUGFeRD.Test
 
             InvoiceDescriptor invoice = InvoiceDescriptor.Load(path);
             Assert.AreEqual(Profile.Extended, invoice.Profile);
-        } // !TestLocalNamespace()
+        } // !TestLocalNamespace()        
     }
 }

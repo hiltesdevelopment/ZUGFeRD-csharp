@@ -119,7 +119,7 @@ namespace s2industries.ZUGFeRD
         /// The lists of valid currencies are
         /// registered with the ISO 4217 Maintenance Agency „Codes for the
         /// representation of currencies and funds”. Please refer to Article 230
-        /// of the Council Directive 2006/112/EC [2] for further information.
+        /// of the Council Directive 2006/112/EC [2] for further information.                
         ///
         /// BT-6
         /// </summary>
@@ -359,16 +359,22 @@ namespace s2industries.ZUGFeRD
         public decimal? TaxBasisAmount { get; set; } = null;
 
         /// <summary>
-        /// The total VAT amount for the invoice.
-        /// The VAT total amount expressed in the accounting currency accepted or required in the country of the seller
-        ///
-        /// To be used when the VAT accounting currency (BT-6) differs from the Invoice currency code (BT-5) in accordance
-        /// with article 230 of Directive 2006/112 / EC on VAT. The VAT amount in accounting currency is not used
-        /// in the calculation of the Invoice totals..
+        /// The total VAT amount for the invoice in invoice currency (BT-5).
         ///
         /// BT-110
         /// </summary>
         public decimal? TaxTotalAmount { get; set; } = null;
+
+        /// <summary>
+        /// The total VAT amount expressed in the accounting currency (BT-6).
+        ///
+        /// To be used when the VAT accounting currency (BT-6) differs from the Invoice currency code (BT-5) in accordance
+        /// with article 230 of Directive 2006/112 / EC on VAT. The VAT amount in accounting currency is not used
+        /// in the calculation of the Invoice totals.
+        ///
+        /// BT-111
+        /// </summary>
+        public decimal? TaxTotalAmountInAccountingCurrency { get; set; } = null;
 
         /// <summary>
         /// Invoice total amount with VAT
@@ -1389,7 +1395,7 @@ namespace s2industries.ZUGFeRD
         /// <param name="chargeTotalAmount">Sum of all charges</param>
         /// <param name="allowanceTotalAmount">Sum of all allowances</param>
         /// <param name="taxBasisAmount">Base amount for tax calculation</param>
-        /// <param name="taxTotalAmount">Total tax amount</param>
+        /// <param name="taxTotalAmount">Total tax amount in invoice currency (BT-110)</param>
         /// <param name="grandTotalAmount">Total amount including tax</param>
         /// <param name="totalPrepaidAmount">Amount already paid</param>
         /// <param name="duePayableAmount">Amount due for payment</param>
@@ -1408,8 +1414,8 @@ namespace s2industries.ZUGFeRD
             this.GrandTotalAmount = grandTotalAmount;
             this.TotalPrepaidAmount = totalPrepaidAmount;
             this.DuePayableAmount = duePayableAmount;
-            this.RoundingAmount = roundingAmount;
-        }
+            this.RoundingAmount = roundingAmount;            
+        } // !SetTotals()
 
 
         /// <summary>
@@ -2177,6 +2183,20 @@ namespace s2industries.ZUGFeRD
         {
             return this.Notes;
         } // !GetNotes()
+
+
+        /// <summary>
+        /// For specific scenarios, it might be necessary to specify the tax total amount in the accounting currency of the buyer or seller (instead of the invoice currency).
+        /// This happens e.g. when the invoice is issued to a buyer in a foreign country and the tax authorities need to receive the tax total in the local currency
+        /// for tax reporting purposes.
+        /// </summary>
+        /// <param name="taxTotalInAccountingCurrency">Tax in accounting currency</param>
+        /// <param name="accountingCurrency">The accounting currency</param>
+        public void SetTaxTotalInAccountingCurrency(decimal taxTotalInAccountingCurrency, CurrencyCodes accountingCurrency)
+        {
+            this.TaxTotalAmountInAccountingCurrency = taxTotalInAccountingCurrency;
+            this.TaxCurrency = accountingCurrency;
+        } // !SetTaxTotalInAccountingCurrency()
 
 
         private string _getNextLineId()
