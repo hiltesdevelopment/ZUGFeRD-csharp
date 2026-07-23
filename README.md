@@ -11,13 +11,13 @@
 - ZUGFeRD-CSharp bleibt Open Source  
 - Bugfixes und Stabilitätsverbesserungen bleiben öffentlich verfügbar  
 - Neue Features gibt es ausschließlich in der kommerziellen Version  
-- Commercial Version: https://www.factoorsharp.de
+- Commercial Version: [https://www.factoorsharp.de](https://www.factoorsharp.de/?utm_source=github&utm_medium=readme&utm_campaign=zugferd-csharp)
 
 **English**
 - ZUGFeRD-CSharp remains Open Source  
 - Bug fixes and stability improvements remain publicly available  
 - New features are only available in the commercial version  
-- Commercial version: https://www.factoorsharp.de
+- Commercial version: [https://www.factoorsharp.de](https://www.factoorsharp.de/?utm_source=github&utm_medium=readme&utm_campaign=zugferd-csharp)
 
 
 ## Deutsch
@@ -68,7 +68,7 @@ GitHub (Issues & Diskussionen):
 https://github.com/S2-Industries/FactoorSharp.FacturX  
 
 Website:  
-https://www.factoorsharp.de/  
+[https://www.factoorsharp.de/](https://www.factoorsharp.de/)  
 
 ## Warum lohnt sich die kommerzielle Version?
 
