@@ -11,13 +11,13 @@
 - ZUGFeRD-CSharp bleibt Open Source  
 - Bugfixes und Stabilitätsverbesserungen bleiben öffentlich verfügbar  
 - Neue Features gibt es ausschließlich in der kommerziellen Version  
-- Commercial Version: https://www.factoorsharp.de
+- Commercial Version: [https://www.factoorsharp.de](https://www.factoorsharp.de/?utm_source=github&utm_medium=readme&utm_campaign=zugferd-csharp)
 
 **English**
 - ZUGFeRD-CSharp remains Open Source  
 - Bug fixes and stability improvements remain publicly available  
 - New features are only available in the commercial version  
-- Commercial version: https://www.factoorsharp.de
+- Commercial version: [https://www.factoorsharp.de](https://www.factoorsharp.de/?utm_source=github&utm_medium=readme&utm_campaign=zugferd-csharp)
 
 
 ## Deutsch
@@ -68,7 +68,7 @@ GitHub (Issues & Diskussionen):
 https://github.com/S2-Industries/FactoorSharp.FacturX  
 
 Website:  
-https://www.factoorsharp.de/  
+[https://www.factoorsharp.de/](https://www.factoorsharp.de/?utm_source=github&utm_medium=readme&utm_campaign=zugferd-csharp)  
 
 ## Warum lohnt sich die kommerzielle Version?
 
@@ -82,7 +82,7 @@ Die kommerzielle Version bietet zusätzliche Funktionen, die über die reine Ver
 
 - Online-Tools & Services  
   Ergänzende Hilfsmittel zur Analyse und Verarbeitung von ZUGFeRD-Dateien auf:  
-  https://www.factoorsharp.de/  
+[https://www.factoorsharp.de/](https://www.factoorsharp.de/?utm_source=github&utm_medium=readme&utm_campaign=zugferd-csharp)  
 
 Diese Erweiterungen helfen dabei, Fehler frühzeitig zu erkennen, Risiken im produktiven Einsatz zu reduzieren und die Verarbeitung elektronischer Rechnungen langfristig stabil zu betreiben.
 
@@ -136,7 +136,7 @@ GitHub (Issues & Discussions):
 https://github.com/S2-Industries/FactoorSharp.FacturX  
 
 Website:  
-https://www.factoorsharp.de/  
+[https://www.factoorsharp.de/](https://www.factoorsharp.de/?utm_source=github&utm_medium=readme&utm_campaign=zugferd-csharp) 
 
 Summary:
 
@@ -147,14 +147,17 @@ All new features are part of the commercial FactoorSharp product.
 The commercial version provides additional capabilities beyond basic ZUGFeRD processing, designed for production-grade environments:
 
 - Validation component  
-  Validate ZUGFeRD and PDF documents using established tools such as Mustang, Valitool, and VeraPDF  
+  Validate ZUGFeRD and PDF documents using established tools such as Mustang, Valitool, and VeraPDF
+
+- Visualization component
+  Create well-designed pdf representations of the electronic invoice
 
 - Integration of upcoming standards  
   Early support for new regulatory requirements and evolving e-invoicing standards  
 
 - Online tools & services  
   Additional utilities for analyzing and processing ZUGFeRD files available at:  
-  https://www.factoorsharp.de/  
+  [https://www.factoorsharp.de/](https://www.factoorsharp.de/?utm_source=github&utm_medium=readme&utm_campaign=zugferd-csharp)  
 
 These features help improve quality, compliance, and efficiency when working with electronic invoices.
 
