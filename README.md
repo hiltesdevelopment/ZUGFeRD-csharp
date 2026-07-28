@@ -1,9 +1,8 @@
 # ZUGFeRD-CSharp – Next Chapter
 
-[![NuGet Version](https://img.shields.io/nuget/v/ZUGFeRD-CSharp.svg?style=flat&logo=nuget)](https://www.nuget.org/packages/ZUGFeRD-CSharp)
-![Model](https://img.shields.io/badge/model-open%20core-blue)
-![Status](https://img.shields.io/badge/status-active-success)
-[![Successor](https://img.shields.io/badge/successor-FactoorSharp-blue)](https://www.factoorsharp.de/?utm_source=github&utm_medium=readme&utm_campaign=zugferd-csharp)
+[![NuGet](https://img.shields.io/nuget/v/ZUGFeRD-CSharp?style=flat-square&logo=nuget&label=NuGet)](https://www.nuget.org/packages/ZUGFeRD-CSharp)
+![Status](https://img.shields.io/badge/status-maintenance%20only-orange?style=flat-square)
+[![Recommended](https://img.shields.io/badge/recommended-FactoorSharp-blue?style=flat-square)](https://www.factoorsharp.de/?utm_source=github&utm_medium=readme&utm_campaign=zugferd-csharp)
 
 
 > [!IMPORTANT]
