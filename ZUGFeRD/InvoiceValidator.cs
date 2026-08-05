@@ -106,7 +106,7 @@ namespace s2industries.ZUGFeRD
                 {
                     lineTotalPerTax.Add(charge.Tax.Percent, new decimal());
                 }
-                lineTotalPerTax[charge.Tax.Percent] -= charge.Amount;
+                lineTotalPerTax[charge.Tax.Percent] += charge.Amount;
                 chargeTotal += charge.Amount;
             }
 
