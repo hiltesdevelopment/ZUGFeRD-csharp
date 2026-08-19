@@ -358,10 +358,10 @@ namespace s2industries.ZUGFeRD.Test
             TradeAllowance loadedAllowance = loadedInvoice.GetTradeAllowances().FirstOrDefault();
 
             Assert.IsNotNull(loadedAllowance);
-            Assert.AreEqual(loadedAllowance.BasisAmount, basisAmount, message: "basisAmount");
-            Assert.AreEqual(loadedAllowance.Amount, actualAmount, message: "actualAmount");
-            Assert.AreEqual(loadedAllowance.ChargePercentage, chargePercentage, message: "chargePercentage"); // BT-94
-            Assert.AreEqual(loadedAllowance.Reason, reason, message: "reason");
+            Assert.AreEqual(basisAmount, loadedAllowance.BasisAmount, message: "basisAmount");
+            Assert.AreEqual(actualAmount, loadedAllowance.Amount, message: "actualAmount");
+            Assert.AreEqual(chargePercentage, loadedAllowance.ChargePercentage, message: "chargePercentage"); // BT-94
+            Assert.AreEqual(reason, loadedAllowance.Reason, message: "reason");
         } // !TestAllowanceChargePercentageOnDocumentLevel
 
 
@@ -406,16 +406,16 @@ namespace s2industries.ZUGFeRD.Test
             TradeAllowance loadedAllowance = loadedItem.GetSpecifiedTradeAllowances().FirstOrDefault();
 
             Assert.IsNotNull(loadedAllowance);
-            Assert.AreEqual(loadedAllowance.ChargeIndicator, false, message: "isDiscount");
-            Assert.AreEqual(loadedAllowance.BasisAmount, basisAmount, message: "basisAmount"); // BT-137
-            Assert.AreEqual(loadedAllowance.ActualAmount, actualAmount, message: "actualAmount"); // BT-136
-            Assert.AreEqual(loadedAllowance.ChargePercentage, chargePercentage, message: "chargePercentage"); // BT-138
-            Assert.AreEqual(loadedAllowance.Reason, reason, message: "reason");
-            Assert.AreEqual(loadedAllowance.ReasonCode, reasonCode, message: "reasonCode");
+            Assert.AreEqual(false, loadedAllowance.ChargeIndicator, message: "isDiscount");
+            Assert.AreEqual(basisAmount, loadedAllowance.BasisAmount, message: "basisAmount"); // BT-137
+            Assert.AreEqual(actualAmount, loadedAllowance.ActualAmount, message: "actualAmount"); // BT-136
+            Assert.AreEqual(chargePercentage, loadedAllowance.ChargePercentage, message: "chargePercentage"); // BT-138
+            Assert.AreEqual(reason, loadedAllowance.Reason, message: "reason");
+            Assert.AreEqual(reasonCode, loadedAllowance.ReasonCode, message: "reasonCode");
 
             // an allowance of the invoice line says nothing about the price of the item
             Assert.HasCount(0, loadedItem.GetTradeAllowanceCharges());
-            Assert.AreEqual(loadedItem.NetUnitPrice, netUnitPrice, message: "netUnitPrice");
+            Assert.AreEqual(netUnitPrice, loadedItem.NetUnitPrice, message: "netUnitPrice");
             Assert.IsNull(loadedItem.GrossUnitPrice, message: "grossUnitPrice");
         } // !TestSpecifiedTradeAllowanceOnLineLevel
 
@@ -458,14 +458,14 @@ namespace s2industries.ZUGFeRD.Test
 
             TradeLineItem loadedItem = loadedInvoice.GetTradeLineItems().First();
 
-            Assert.AreEqual(loadedItem.NetUnitPrice, netUnitPrice, message: "netUnitPrice"); // BT-146
-            Assert.AreEqual(loadedItem.GrossUnitPrice, grossUnitPrice, message: "grossUnitPrice"); // BT-148
+            Assert.AreEqual(netUnitPrice, loadedItem.NetUnitPrice, message: "netUnitPrice"); // BT-146
+            Assert.AreEqual(grossUnitPrice, loadedItem.GrossUnitPrice, message: "grossUnitPrice"); // BT-148
 
             TradeAllowance loadedAllowance = loadedItem.GetTradeAllowances().FirstOrDefault();
 
             Assert.IsNotNull(loadedAllowance);
-            Assert.AreEqual(loadedAllowance.ActualAmount, actualAmount, message: "actualAmount"); // BT-147
-            Assert.AreEqual(loadedAllowance.BasisAmount, grossUnitPrice, message: "basisAmount");
+            Assert.AreEqual(actualAmount, loadedAllowance.ActualAmount, message: "actualAmount"); // BT-147
+            Assert.AreEqual(grossUnitPrice, loadedAllowance.BasisAmount, message: "basisAmount");
 
             // the discount of the price is not an allowance of the invoice line
             Assert.HasCount(0, loadedItem.GetSpecifiedTradeAllowances());
