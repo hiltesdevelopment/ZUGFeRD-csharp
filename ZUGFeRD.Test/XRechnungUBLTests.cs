@@ -331,6 +331,148 @@ namespace s2industries.ZUGFeRD.Test
 
 
         [TestMethod]
+        public void TestAllowanceChargePercentageOnDocumentLevel()
+        {
+            InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
+
+            // Test Values
+            decimal? basisAmount = 123.45m;
+            CurrencyCodes currency = CurrencyCodes.EUR;
+            decimal actualAmount = 12.34m;
+            decimal chargePercentage = 10.0m;
+            string reason = "Besondere Vereinbarung";
+            AllowanceReasonCodes reasonCode = AllowanceReasonCodes.SpecialAgreement;
+            TaxTypes taxTypeCode = TaxTypes.VAT;
+            TaxCategoryCodes taxCategoryCode = TaxCategoryCodes.AA;
+            decimal taxPercent = 19.0m;
+
+            desc.AddTradeAllowance(basisAmount, currency, actualAmount, chargePercentage, reason, taxTypeCode, taxCategoryCode, taxPercent, reasonCode);
+
+            MemoryStream ms = new MemoryStream();
+
+            desc.Save(ms, _Version, Profile.XRechnung, ZUGFeRDFormats.UBL);
+            ms.Seek(0, SeekOrigin.Begin);
+
+            InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(ms);
+
+            TradeAllowance loadedAllowance = loadedInvoice.GetTradeAllowances().FirstOrDefault();
+
+            Assert.IsNotNull(loadedAllowance);
+            Assert.AreEqual(loadedAllowance.BasisAmount, basisAmount, message: "basisAmount");
+            Assert.AreEqual(loadedAllowance.Amount, actualAmount, message: "actualAmount");
+            Assert.AreEqual(loadedAllowance.ChargePercentage, chargePercentage, message: "chargePercentage"); // BT-94
+            Assert.AreEqual(loadedAllowance.Reason, reason, message: "reason");
+        } // !TestAllowanceChargePercentageOnDocumentLevel
+
+
+        /// <summary>
+        /// BG-27, the allowance of the invoice line, which is not the discount of the item price (BT-147)
+        /// </summary>
+        [TestMethod]
+        public void TestSpecifiedTradeAllowanceOnLineLevel()
+        {
+            InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
+            desc.TradeLineItems.Clear();
+
+            // Test Values
+            CurrencyCodes currency = CurrencyCodes.EUR;
+            decimal netUnitPrice = 1950.0m;
+            decimal? basisAmount = 1950.0m;
+            decimal actualAmount = 780.0m;
+            decimal chargePercentage = 40.0m;
+            string reason = "Nachlass";
+            AllowanceReasonCodes reasonCode = AllowanceReasonCodes.Discount;
+
+            TradeLineItem item = desc.AddTradeLineItem(
+                lineID: "1",
+                name: "Ultraschallprüfung",
+                billedQuantity: 1m,
+                unitCode: QuantityCodes.C62,
+                netUnitPrice: netUnitPrice,
+                categoryCode: TaxCategoryCodes.S,
+                taxPercent: 19.0m,
+                taxType: TaxTypes.VAT);
+
+            item.AddSpecifiedTradeAllowance(currency, basisAmount, actualAmount, chargePercentage, reason, reasonCode);
+
+            MemoryStream ms = new MemoryStream();
+
+            desc.Save(ms, _Version, Profile.XRechnung, ZUGFeRDFormats.UBL);
+            ms.Seek(0, SeekOrigin.Begin);
+
+            InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(ms);
+
+            TradeLineItem loadedItem = loadedInvoice.GetTradeLineItems().First();
+            TradeAllowance loadedAllowance = loadedItem.GetSpecifiedTradeAllowances().FirstOrDefault();
+
+            Assert.IsNotNull(loadedAllowance);
+            Assert.AreEqual(loadedAllowance.ChargeIndicator, false, message: "isDiscount");
+            Assert.AreEqual(loadedAllowance.BasisAmount, basisAmount, message: "basisAmount"); // BT-137
+            Assert.AreEqual(loadedAllowance.ActualAmount, actualAmount, message: "actualAmount"); // BT-136
+            Assert.AreEqual(loadedAllowance.ChargePercentage, chargePercentage, message: "chargePercentage"); // BT-138
+            Assert.AreEqual(loadedAllowance.Reason, reason, message: "reason");
+            Assert.AreEqual(loadedAllowance.ReasonCode, reasonCode, message: "reasonCode");
+
+            // an allowance of the invoice line says nothing about the price of the item
+            Assert.HasCount(0, loadedItem.GetTradeAllowanceCharges());
+            Assert.AreEqual(loadedItem.NetUnitPrice, netUnitPrice, message: "netUnitPrice");
+            Assert.IsNull(loadedItem.GrossUnitPrice, message: "grossUnitPrice");
+        } // !TestSpecifiedTradeAllowanceOnLineLevel
+
+
+        /// <summary>
+        /// BT-147 and BT-148, the discount of the item price, which is written inside cac:Price
+        /// </summary>
+        [TestMethod]
+        public void TestPriceDiscountOnLineLevel()
+        {
+            InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
+            desc.TradeLineItems.Clear();
+
+            // Test Values
+            CurrencyCodes currency = CurrencyCodes.EUR;
+            decimal netUnitPrice = 9.9m;
+            decimal grossUnitPrice = 11.0m;
+            decimal actualAmount = 1.1m;
+            string reason = "Rabatt";
+
+            TradeLineItem item = desc.AddTradeLineItem(
+                lineID: "1",
+                name: "Trennblätter A4",
+                billedQuantity: 20m,
+                unitCode: QuantityCodes.H87,
+                netUnitPrice: netUnitPrice,
+                grossUnitPrice: grossUnitPrice,
+                categoryCode: TaxCategoryCodes.S,
+                taxPercent: 19.0m,
+                taxType: TaxTypes.VAT);
+
+            item.AddTradeAllowance(currency, grossUnitPrice, actualAmount, reason, AllowanceReasonCodes.Discount);
+
+            MemoryStream ms = new MemoryStream();
+
+            desc.Save(ms, _Version, Profile.XRechnung, ZUGFeRDFormats.UBL);
+            ms.Seek(0, SeekOrigin.Begin);
+
+            InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(ms);
+
+            TradeLineItem loadedItem = loadedInvoice.GetTradeLineItems().First();
+
+            Assert.AreEqual(loadedItem.NetUnitPrice, netUnitPrice, message: "netUnitPrice"); // BT-146
+            Assert.AreEqual(loadedItem.GrossUnitPrice, grossUnitPrice, message: "grossUnitPrice"); // BT-148
+
+            TradeAllowance loadedAllowance = loadedItem.GetTradeAllowances().FirstOrDefault();
+
+            Assert.IsNotNull(loadedAllowance);
+            Assert.AreEqual(loadedAllowance.ActualAmount, actualAmount, message: "actualAmount"); // BT-147
+            Assert.AreEqual(loadedAllowance.BasisAmount, grossUnitPrice, message: "basisAmount");
+
+            // the discount of the price is not an allowance of the invoice line
+            Assert.HasCount(0, loadedItem.GetSpecifiedTradeAllowances());
+        } // !TestPriceDiscountOnLineLevel
+
+
+        [TestMethod]
         public void TestInvoiceWithAttachment()
         {
             InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
