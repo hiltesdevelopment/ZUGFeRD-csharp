@@ -53,7 +53,10 @@ namespace s2industries.ZUGFeRD
             {
                 writer = new InvoiceDescriptor22UBLWriter();
             }
-
+            if ((format == ZUGFeRDFormats.UBL) && (descriptor.Profile != Profile.XRechnung) && writer == null)
+            {
+                throw new UnsupportedException($"Format {ZUGFeRDFormats.UBL.ToString()} is only allowed with Profile {Profile.XRechnung.ToString()}");
+            }
             if (writer == null)
             {                
                 throw new UnsupportedException($"Profile {descriptor.Profile.ToString()} and format {format.EnumToString()} is not supported.");
