@@ -1644,7 +1644,13 @@ namespace s2industries.ZUGFeRD
                 writer.WriteEndElement(); // !CalculatedAmount
 
                 writer.WriteElementString("ram", "TypeCode", tax.TypeCode.EnumToString());
-                writer.WriteOptionalElementString("ram", "ExemptionReason", tax.ExemptionReason);
+
+                // no exemption reason for tax category Z (reverse charge) according to BR-Z-10
+                if (!tax.CategoryCode.HasValue || (tax.CategoryCode.Value != TaxCategoryCodes.Z))
+                {
+                    writer.WriteOptionalElementString("ram", "ExemptionReason", tax.ExemptionReason);
+                }
+
                 writer.WriteStartElement("ram", "BasisAmount");
                 writer.WriteValue(_formatDecimal(tax.BasisAmount));
                 writer.WriteEndElement(); // !BasisAmount
@@ -1667,7 +1673,9 @@ namespace s2industries.ZUGFeRD
                     writer.WriteElementString("ram", "CategoryCode", tax.CategoryCode.EnumToString());
                 }
 
-                if (tax.ExemptionReasonCode.HasValue)
+                // no exemption reason for tax category Z (reverse charge) according to BR-Z-10
+                if (tax.ExemptionReasonCode.HasValue &&
+                    (!tax.CategoryCode.HasValue || (tax.CategoryCode.Value != TaxCategoryCodes.Z)))
                 {
                     writer.WriteElementString("ram", "ExemptionReasonCode", tax.ExemptionReasonCode?.EnumToString());
                 }
