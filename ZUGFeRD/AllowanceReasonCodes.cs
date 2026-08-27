@@ -40,7 +40,7 @@ namespace s2industries.ZUGFeRD
         OtherBonus,
 
         /// <summary>
-        /// Manufacturer’s consumer discount
+        /// Manufacturerâ€™s consumer discount
         /// </summary>
         [EnumStringValue("60")]
         ManufacturersConsumerDiscount,
