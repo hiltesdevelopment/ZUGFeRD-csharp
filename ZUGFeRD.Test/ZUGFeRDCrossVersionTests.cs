@@ -87,6 +87,7 @@ namespace s2industries.ZUGFeRD.Test
             desc.AddNote("REG", SubjectCodes.REG);
             desc.AddNote("SUR", SubjectCodes.SUR);
             desc.AddNote("TXD", SubjectCodes.TXD);
+            desc.AddNote("OSI", SubjectCodes.OSI);
 
             using MemoryStream ms = new();
             desc.Save(ms, version, profile);
@@ -101,6 +102,7 @@ namespace s2industries.ZUGFeRD.Test
             Assert.AreEqual(notes[3].SubjectCode, SubjectCodes.REG);
             Assert.AreEqual(notes[4].SubjectCode, SubjectCodes.SUR);
             Assert.AreEqual(notes[5].SubjectCode, SubjectCodes.TXD);
+            Assert.AreEqual(notes[6].SubjectCode, SubjectCodes.OSI);
         } // !TestNoteSubjectCodes()
 
 
