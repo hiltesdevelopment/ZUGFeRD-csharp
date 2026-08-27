@@ -619,8 +619,7 @@ namespace s2industries.ZUGFeRD
         /// <param name="lineStatusReasonCode">The reason code explaining the status</param>
         public TradeLineItem SetLineStatus(LineStatusCodes lineStatusCode, LineStatusReasonCodes lineStatusReasonCode)
         {
-            this.AssociatedDocument.LineStatusCode = lineStatusCode;
-            this.AssociatedDocument.LineStatusReasonCode = lineStatusReasonCode;
+            this.AssociatedDocument.SetLineStatus(lineStatusCode, lineStatusReasonCode);
             return this;
         }
 

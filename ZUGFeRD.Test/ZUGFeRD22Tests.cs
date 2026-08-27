@@ -2788,6 +2788,27 @@ namespace s2industries.ZUGFeRD.Test
 
 
         [TestMethod]
+        [DataRow(DesignatedProductClassificationClassCodes.AS)]
+        [DataRow(DesignatedProductClassificationClassCodes.IN)]
+        [DataRow(DesignatedProductClassificationClassCodes.IS)]
+        [DataRow(DesignatedProductClassificationClassCodes.TST)]
+        [DataRow(DesignatedProductClassificationClassCodes.VX)]
+        public void TestExpandedDesignatedProductClassificationCodes(DesignatedProductClassificationClassCodes classificationCode)
+        {
+            InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
+            desc.TradeLineItems.First().AddDesignatedProductClassification(classificationCode);
+
+            using MemoryStream ms = new();
+            desc.Save(ms, ZUGFeRDVersion.Version23, Profile.XRechnung);
+            ms.Seek(0, SeekOrigin.Begin);
+
+            InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(ms);
+
+            Assert.AreEqual(classificationCode, loadedInvoice.TradeLineItems.First().GetDesignatedProductClassifications().First().ListID);
+        } // !TestExpandedDesignatedProductClassificationCodes()
+
+
+        [TestMethod]
         public void TestDesignatedProductClassificationWithEmptyVersionId()
         {
             // test with empty _Version id value

@@ -207,6 +207,12 @@ namespace s2industries.ZUGFeRD
         ///
         /// Note contains information mutually defined by trading partners.
         /// </summary>
-        ZZZ
+        ZZZ,
+
+        /// <summary>
+        /// Other service information
+        /// OSI is a code from the UNTDID 4451 code list.
+        /// </summary>
+        OSI
     }
 }
