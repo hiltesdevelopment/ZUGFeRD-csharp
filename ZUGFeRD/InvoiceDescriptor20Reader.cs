@@ -498,9 +498,7 @@ namespace s2industries.ZUGFeRD
                 BillingPeriodEnd = XmlUtils.NodeAsDateTime(tradeLineItem, ".//ram:BillingSpecifiedPeriod/ram:EndDateTime/udt:DateTimeString", nsmgr),
             };
 
-            // Both CII fields are optional; preserve each value independently during import.
-            item.AssociatedDocument.LineStatusCode = lineStatusCode;
-            item.AssociatedDocument.LineStatusReasonCode = lineStatusReasonCode;
+            item.AssociatedDocument.SetLineStatus(lineStatusCode, lineStatusReasonCode);
 
             if (tradeLineItem.SelectNodes(".//ram:SpecifiedTradeProduct/ram:ApplicableProductCharacteristic", nsmgr) != null)
             {
