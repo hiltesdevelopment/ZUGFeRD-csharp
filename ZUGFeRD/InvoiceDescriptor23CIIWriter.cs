@@ -577,8 +577,8 @@ namespace s2industries.ZUGFeRD
                 _Writer.WriteValue(_formatDecimal(total));
                 _Writer.WriteEndElement(); // !ram:LineTotalAmount
 
-                // TODO: TotalAllowanceChargeAmount
-                //Gesamtbetrag der Positionszu- und Abschläge
+                // Gesamtbetrag der Positionszu- und Abschläge; nur Extended, in EN 16931 nicht verwendet.
+                _writeOptionalAmount(_Writer, "ram", "TotalAllowanceChargeAmount", tradeLineItem.TotalAllowanceChargeAmount, 2, false, Profile.Extended);
                 _Writer.WriteEndElement(); // ram:SpecifiedTradeSettlementMonetarySummation
                 #endregion                
 

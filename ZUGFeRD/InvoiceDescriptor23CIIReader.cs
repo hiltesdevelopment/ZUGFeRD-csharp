@@ -702,7 +702,11 @@ namespace s2industries.ZUGFeRD
                 }
 
                 XmlNode specifiedTradeSettlementLineMonetarySummationNode = tradeLineItem.SelectSingleNode(".//ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeSettlementLineMonetarySummation", nsmgr);
-                // TODO: process
+                if (specifiedTradeSettlementLineMonetarySummationNode != null)
+                {
+                    // Der Reader erhält vorhandene Daten unabhängig von der späteren Profilvalidierung.
+                    item.TotalAllowanceChargeAmount = XmlUtils.NodeAsDecimal(specifiedTradeSettlementLineMonetarySummationNode, "./ram:TotalAllowanceChargeAmount", nsmgr);
+                }
 
                 foreach (XmlNode invoiceReferencedDocumentNode in tradeLineItem.SelectNodes(".//ram:SpecifiedLineTradeSettlement/ram:InvoiceReferencedDocument", nsmgr))
                 {
