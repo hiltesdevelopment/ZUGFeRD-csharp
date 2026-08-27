@@ -120,6 +120,69 @@ namespace s2industries.ZUGFeRD.Test
 
 
         [TestMethod]
+        public void TestTotalAllowanceChargeAmountWriterProfiles()
+        {
+            InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
+            desc.TradeLineItems[0].TotalAllowanceChargeAmount = 12.5m;
+
+            using MemoryStream extendedStream = new();
+            desc.Save(extendedStream, ZUGFeRDVersion.Version23, Profile.Extended);
+            extendedStream.Position = 0;
+
+            XmlDocument extendedDocument = new();
+            extendedDocument.Load(extendedStream);
+            XmlNamespaceManager extendedNamespaceManager = new(extendedDocument.NameTable);
+            extendedNamespaceManager.AddNamespace("ram", "urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100");
+            XmlNode? extendedAmountNode = extendedDocument.SelectSingleNode("//ram:SpecifiedTradeSettlementLineMonetarySummation/ram:TotalAllowanceChargeAmount", extendedNamespaceManager);
+
+            Assert.IsNotNull(extendedAmountNode);
+            Assert.AreEqual("12.50", extendedAmountNode.InnerText);
+
+            using MemoryStream comfortStream = new();
+            desc.Save(comfortStream, ZUGFeRDVersion.Version23, Profile.Comfort);
+            comfortStream.Position = 0;
+
+            XmlDocument comfortDocument = new();
+            comfortDocument.Load(comfortStream);
+            XmlNamespaceManager comfortNamespaceManager = new(comfortDocument.NameTable);
+            comfortNamespaceManager.AddNamespace("ram", "urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100");
+            XmlNode? comfortAmountNode = comfortDocument.SelectSingleNode("//ram:SpecifiedTradeSettlementLineMonetarySummation/ram:TotalAllowanceChargeAmount", comfortNamespaceManager);
+
+            Assert.IsNull(comfortAmountNode);
+        } // !TestTotalAllowanceChargeAmountWriterProfiles()
+
+
+        [TestMethod]
+        public void TestTotalAllowanceChargeAmountReader()
+        {
+            InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
+
+            using MemoryStream invoiceStream = new();
+            desc.Save(invoiceStream, ZUGFeRDVersion.Version23, Profile.Extended);
+            invoiceStream.Position = 0;
+
+            XmlDocument invoiceDocument = new();
+            invoiceDocument.Load(invoiceStream);
+            const string ramNamespace = "urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100";
+            XmlNamespaceManager namespaceManager = new(invoiceDocument.NameTable);
+            namespaceManager.AddNamespace("ram", ramNamespace);
+            XmlNode? monetarySummationNode = invoiceDocument.SelectSingleNode("//ram:SpecifiedTradeSettlementLineMonetarySummation", namespaceManager);
+            Assert.IsNotNull(monetarySummationNode);
+
+            XmlElement totalAllowanceChargeAmountElement = invoiceDocument.CreateElement("ram", "TotalAllowanceChargeAmount", ramNamespace);
+            totalAllowanceChargeAmountElement.InnerText = "12.50";
+            monetarySummationNode.AppendChild(totalAllowanceChargeAmountElement);
+
+            using MemoryStream modifiedInvoiceStream = new();
+            invoiceDocument.Save(modifiedInvoiceStream);
+            modifiedInvoiceStream.Position = 0;
+
+            InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(modifiedInvoiceStream);
+            Assert.AreEqual(12.5m, loadedInvoice.TradeLineItems[0].TotalAllowanceChargeAmount);
+        } // !TestTotalAllowanceChargeAmountReader()
+
+
+        [TestMethod]
         public void TestExtendedInvoiceWithIncludedItems()
         {
             string path = @"..\..\..\..\demodata\zugferd21\zugferd_2p1_EXTENDED_Warenrechnung-factur-x.xml";
