@@ -77,5 +77,16 @@ namespace s2industries.ZUGFeRD
         /// BT-X-8
         /// </summary>
         public LineStatusReasonCodes? LineStatusReasonCode { get; internal set; } = null;
+
+
+        /// <summary>
+        /// Sets independently read optional line status values during import.
+        /// Both CII fields are optional and must be preserved independently.
+        /// </summary>
+        internal void SetLineStatus(LineStatusCodes? lineStatusCode, LineStatusReasonCodes? lineStatusReasonCode)
+        {
+            this.LineStatusCode = lineStatusCode;
+            this.LineStatusReasonCode = lineStatusReasonCode;
+        }
     }
 }

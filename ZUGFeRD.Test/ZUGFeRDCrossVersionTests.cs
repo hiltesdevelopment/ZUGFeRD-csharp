@@ -43,6 +43,60 @@ namespace s2industries.ZUGFeRD.Test
 
 
         [TestMethod]
+        [DataRow(ZUGFeRDVersion.Version20)]
+        [DataRow(ZUGFeRDVersion.Version23)]
+        public void TestLineStatusReasonCodeWithoutStatusCode(ZUGFeRDVersion version)
+        {
+            InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
+            desc.TradeLineItems[0].SetLineStatus(LineStatusCodes.New, LineStatusReasonCodes.GROUP);
+
+            using MemoryStream invoiceStream = new();
+            desc.Save(invoiceStream, version, Profile.Extended);
+            string invoiceXml = Encoding.UTF8.GetString(invoiceStream.ToArray());
+
+            XmlDocument reasonOnlyDocument = new();
+            reasonOnlyDocument.LoadXml(invoiceXml);
+            XmlNamespaceManager reasonOnlyNamespaceManager = new(reasonOnlyDocument.NameTable);
+            reasonOnlyNamespaceManager.AddNamespace("ram", "urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100");
+            XmlNode? lineStatusCodeNode = reasonOnlyDocument.SelectSingleNode("//ram:AssociatedDocumentLineDocument/ram:LineStatusCode", reasonOnlyNamespaceManager);
+            Assert.IsNotNull(lineStatusCodeNode);
+            lineStatusCodeNode.ParentNode!.RemoveChild(lineStatusCodeNode);
+
+            using MemoryStream reasonOnlyStream = new(Encoding.UTF8.GetBytes(reasonOnlyDocument.OuterXml));
+            InvoiceDescriptor reasonOnlyInvoice = InvoiceDescriptor.Load(reasonOnlyStream);
+            Assert.IsNull(reasonOnlyInvoice.TradeLineItems[0].AssociatedDocument.LineStatusCode);
+            Assert.AreEqual(LineStatusReasonCodes.GROUP, reasonOnlyInvoice.TradeLineItems[0].AssociatedDocument.LineStatusReasonCode);
+        } // !TestLineStatusReasonCodeWithoutStatusCode()
+
+
+        [TestMethod]
+        [DataRow(ZUGFeRDVersion.Version20)]
+        [DataRow(ZUGFeRDVersion.Version23)]
+        public void TestLineStatusCodeWithoutReasonCode(ZUGFeRDVersion version)
+        {
+            InvoiceDescriptor desc = this._InvoiceProvider.CreateInvoice();
+            desc.TradeLineItems[0].SetLineStatus(LineStatusCodes.New, LineStatusReasonCodes.GROUP);
+
+            using MemoryStream invoiceStream = new();
+            desc.Save(invoiceStream, version, Profile.Extended);
+            string invoiceXml = Encoding.UTF8.GetString(invoiceStream.ToArray());
+
+            XmlDocument statusOnlyDocument = new();
+            statusOnlyDocument.LoadXml(invoiceXml);
+            XmlNamespaceManager statusOnlyNamespaceManager = new(statusOnlyDocument.NameTable);
+            statusOnlyNamespaceManager.AddNamespace("ram", "urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100");
+            XmlNode? lineStatusReasonCodeNode = statusOnlyDocument.SelectSingleNode("//ram:AssociatedDocumentLineDocument/ram:LineStatusReasonCode", statusOnlyNamespaceManager);
+            Assert.IsNotNull(lineStatusReasonCodeNode);
+            lineStatusReasonCodeNode.ParentNode!.RemoveChild(lineStatusReasonCodeNode);
+
+            using MemoryStream statusOnlyStream = new(Encoding.UTF8.GetBytes(statusOnlyDocument.OuterXml));
+            InvoiceDescriptor statusOnlyInvoice = InvoiceDescriptor.Load(statusOnlyStream);
+            Assert.AreEqual(LineStatusCodes.New, statusOnlyInvoice.TradeLineItems[0].AssociatedDocument.LineStatusCode);
+            Assert.IsNull(statusOnlyInvoice.TradeLineItems[0].AssociatedDocument.LineStatusReasonCode);
+        } // !TestLineStatusCodeWithoutReasonCode()
+
+
+        [TestMethod]
         [DataRow(ZUGFeRDVersion.Version1, Profile.Extended)]
         [DataRow(ZUGFeRDVersion.Version20, Profile.Extended)]
         [DataRow(ZUGFeRDVersion.Version23, Profile.Extended)]

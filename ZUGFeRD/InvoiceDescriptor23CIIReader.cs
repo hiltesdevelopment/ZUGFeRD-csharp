@@ -557,7 +557,7 @@ namespace s2industries.ZUGFeRD
 
             string lineId = XmlUtils.NodeAsString(tradeLineItem, ".//ram:AssociatedDocumentLineDocument/ram:LineID", nsmgr, String.Empty);
             string parentLineId = XmlUtils.NodeAsString(tradeLineItem, ".//ram:AssociatedDocumentLineDocument/ram:ParentLineID", nsmgr, null);
-            LineStatusCodes? lineStatusCode = EnumExtensions.StringToEnum<LineStatusCodes>(XmlUtils.NodeAsString(tradeLineItem, ".//ram:AssociatedDocumentLineDocument/ram:LineStatusCode", nsmgr, null));
+            LineStatusCodes? lineStatusCode = EnumExtensions.StringToNullableEnum<LineStatusCodes>(XmlUtils.NodeAsString(tradeLineItem, ".//ram:AssociatedDocumentLineDocument/ram:LineStatusCode", nsmgr, null));
             LineStatusReasonCodes? lineStatusReasonCode = EnumExtensions.StringToNullableEnum<LineStatusReasonCodes>(XmlUtils.NodeAsString(tradeLineItem, ".//ram:AssociatedDocumentLineDocument/ram:LineStatusReasonCode", nsmgr, null));
 
             TradeLineItem item = new TradeLineItem(lineId)
@@ -601,10 +601,7 @@ namespace s2industries.ZUGFeRD
                 item.SetParentLineId(parentLineId);
             }
 
-            if (lineStatusCode.HasValue && lineStatusReasonCode.HasValue)
-            {
-                item.SetLineStatus(lineStatusCode.Value, lineStatusReasonCode.Value);
-            }
+            item.AssociatedDocument.SetLineStatus(lineStatusCode, lineStatusReasonCode);
 
             if (tradeLineItem.SelectNodes(".//ram:SpecifiedTradeProduct/ram:ApplicableProductCharacteristic", nsmgr) != null)
             {
