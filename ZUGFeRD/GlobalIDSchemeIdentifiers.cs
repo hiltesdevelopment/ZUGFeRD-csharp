@@ -874,13 +874,13 @@ namespace s2industries.ZUGFeRD
         DodAAC,
 
         /// <summary>
-        /// DGCP (Direction GÈnÈrale de la ComptabilitÈ Publique) administrative accounting identification scheme
+        /// DGCP (Direction G√©n√©rale de la Comptabilit√© Publique) administrative accounting identification scheme
         /// </summary>
         [EnumStringValue("0145")]
         DgcpAdminAccounting,
 
         /// <summary>
-        /// DGI (Direction GÈnÈrale des Impots) code
+        /// DGI (Direction G√©n√©rale des Impots) code
         /// </summary>
         [EnumStringValue("0146")]
         DgiCode,
@@ -952,7 +952,7 @@ namespace s2industries.ZUGFeRD
         AtmInterconnectDutchKpn,
 
         /// <summary>
-        /// Identification number of economic subject (ICO) Act on State Statistics of 29 November 2'001, ß 27
+        /// Identification number of economic subject (ICO) Act on State Statistics of 29 November 2'001, ¬ß 27
         /// </summary>
         [EnumStringValue("0158")]
         IcoStatisticalAct,
@@ -1036,7 +1036,7 @@ namespace s2industries.ZUGFeRD
         LuxembourgCpsIndex,
 
         /// <summary>
-        /// Project Group ìLists of Propertiesî (PROLISTÆ)
+        /// Project Group ‚ÄúLists of Properties‚Äù (PROLIST¬Æ)
         /// </summary>
         [EnumStringValue("0172")]
         Prolist,
@@ -1090,7 +1090,7 @@ namespace s2industries.ZUGFeRD
         LithuanianMilitaryPki,
 
         /// <summary>
-        /// NumÈro d'identification suisse des enterprises (IDE), Swiss Unique Business Identification Number (UIDB)
+        /// Num√©ro d'identification suisse des enterprises (IDE), Swiss Unique Business Identification Number (UIDB)
         /// </summary>
         [EnumStringValue("0183")]
         SwissUidb,
@@ -1168,7 +1168,7 @@ namespace s2industries.ZUGFeRD
         SingaporeENInvoiceFramework,
 
         /// <summary>
-        /// Icelandic identifier - Õslensk kennitala
+        /// Icelandic identifier - √çslensk kennitala
         /// </summary>
         [EnumStringValue("0196")]
         IslenskKennitala,
@@ -1198,7 +1198,7 @@ namespace s2industries.ZUGFeRD
         LithuaniaLegalEntityCode,
 
         /// <summary>
-        /// Codice Univoco Unit‡ Organizzativa iPA
+        /// Codice Univoco Unit√† Organizzativa iPA
         /// </summary>
         [EnumStringValue("0201")]
         IpAUnitCode,
@@ -1228,7 +1228,7 @@ namespace s2industries.ZUGFeRD
         Coddest,
 
         /// <summary>
-        /// Registre du Commerce et de líIndustrie : RCI
+        /// Registre du Commerce et de l‚ÄôIndustrie : RCI
         /// </summary>
         [EnumStringValue("0206")]
         Rci,
@@ -1360,13 +1360,13 @@ namespace s2industries.ZUGFeRD
         NonEuBasedCompany,
 
         /// <summary>
-        /// RÈpertoire des Entreprises et des Etablissements (RIDET)
+        /// R√©pertoire des Entreprises et des Etablissements (RIDET)
         /// </summary>
         [EnumStringValue("0228")]
         Ridet,
 
         /// <summary>
-        /// T.A.H.I.T.I (traitement automatique hiÈrarchisÈ des institutions de Tahiti et des Óles)
+        /// T.A.H.I.T.I (traitement automatique hi√©rarchis√© des institutions de Tahiti et des √Æles)
         /// </summary>
         [EnumStringValue("0229")]
         TahitiAutomaticHierarchicalInstitutionDirectory,
@@ -1420,7 +1420,7 @@ namespace s2industries.ZUGFeRD
         DanishCivilRegistrationNumber,
 
         /// <summary>
-        /// Plateforme.s agrÈÈe.s ‡ la facturation Èlectronique (PPF/PDP)
+        /// Plateforme.s agr√©√©e.s √† la facturation √©lectronique (PPF/PDP)
         /// </summary>
         [EnumStringValue("0238")]
         PpfPdp,
@@ -1432,7 +1432,7 @@ namespace s2industries.ZUGFeRD
         Eaeu,
 
         /// <summary>
-        /// Register of legal persons (in French : RÈpertoire des personnes morales)
+        /// Register of legal persons (in French : R√©pertoire des personnes morales)
         /// </summary>
         [EnumStringValue("0240")]
         RegisterOfLegalPersons
