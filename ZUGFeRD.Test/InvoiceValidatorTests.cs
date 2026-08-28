@@ -22,6 +22,45 @@ namespace s2industries.ZUGFeRD.Test
     [TestClass]
     public class InvoiceValidatorTests
     {
+        private static InvoiceDescriptor CreateBalancedInvoice(decimal lineAllowance = 0m, decimal lineCharge = 0m)
+        {
+            InvoiceDescriptor descriptor = InvoiceDescriptor.CreateInvoice("RE-4711", new DateTime(2026, 1, 15), CurrencyCodes.EUR);
+            TradeLineItem lineItem = descriptor.AddTradeLineItem(
+                name: "Test item",
+                netUnitPrice: 100m,
+                unitCode: QuantityCodes.H87,
+                billedQuantity: 2m,
+                lineTotalAmount: 200m,
+                taxType: TaxTypes.VAT,
+                categoryCode: TaxCategoryCodes.S,
+                taxPercent: 19m);
+
+            if (lineAllowance != 0m)
+            {
+                lineItem.AddSpecifiedTradeAllowance(CurrencyCodes.EUR, 200m, lineAllowance, "Quantity discount");
+            }
+            if (lineCharge != 0m)
+            {
+                lineItem.AddSpecifiedTradeCharge(CurrencyCodes.EUR, 200m, lineCharge, "Line charge");
+            }
+
+            decimal lineTotal = 200m - lineAllowance + lineCharge;
+            decimal taxTotal = lineTotal * 19m / 100m;
+            lineItem.LineTotalAmount = lineTotal;
+            descriptor.AddApplicableTradeTax(lineTotal, 19m, taxTotal, TaxTypes.VAT, TaxCategoryCodes.S);
+            descriptor.SetTotals(
+                lineTotalAmount: lineTotal,
+                chargeTotalAmount: 0m,
+                allowanceTotalAmount: 0m,
+                taxBasisAmount: lineTotal,
+                taxTotalAmount: taxTotal,
+                grandTotalAmount: lineTotal + taxTotal,
+                totalPrepaidAmount: 0m,
+                duePayableAmount: lineTotal + taxTotal);
+            return descriptor;
+        }
+
+
         [TestMethod]
         public void ValidTaxBasisAmountIsAccepted()
         {
@@ -56,6 +95,40 @@ namespace s2industries.ZUGFeRD.Test
 
             Assert.IsFalse(result.IsValid);
             Assert.IsTrue(result.Messages.Any(message => message.Contains("taxBasisTotal", StringComparison.Ordinal)));
+        }
+
+
+        [TestMethod]
+        public void ValidInvoiceWithLineAllowanceIsAccepted()
+        {
+            InvoiceDescriptor descriptor = CreateBalancedInvoice(lineAllowance: 10m);
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsTrue(result.IsValid, string.Join(Environment.NewLine, result.Messages));
+        }
+
+
+        [TestMethod]
+        public void ValidInvoiceWithLineChargeIsAccepted()
+        {
+            InvoiceDescriptor descriptor = CreateBalancedInvoice(lineCharge: 10m);
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsTrue(result.IsValid, string.Join(Environment.NewLine, result.Messages));
+        }
+
+
+        [TestMethod]
+        public void PriceAllowanceIsNotSubtractedTwice()
+        {
+            InvoiceDescriptor descriptor = CreateBalancedInvoice();
+            descriptor.TradeLineItems[0].AddTradeAllowance(CurrencyCodes.EUR, 110m, 10m, "Price allowance");
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsTrue(result.IsValid, string.Join(Environment.NewLine, result.Messages));
         }
     }
 }

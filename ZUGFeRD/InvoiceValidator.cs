@@ -72,6 +72,11 @@ namespace s2industries.ZUGFeRD
             foreach (TradeLineItem item in descriptor.GetTradeLineItems())
             {
                 decimal total = decimal.Multiply(item.NetUnitPrice, item.BilledQuantity);
+
+                // BT-131 includes BG-28 line charges and excludes BG-27 line allowances.
+                total -= item.GetSpecifiedTradeAllowances().Sum(allowance => allowance.ActualAmount);
+                total += item.GetSpecifiedTradeCharges().Sum(charge => charge.ActualAmount);
+
                 lineTotal += total;
 
                 if (!lineTotalPerTax.ContainsKey(item.TaxPercent))
