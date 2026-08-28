@@ -128,6 +128,13 @@ namespace s2industries.ZUGFeRD
         public decimal? LineTotalAmount { get; set; }
 
         /// <summary>
+        /// Gesamtbetrag der Zu- und Abschläge auf Positionsebene
+        ///
+        /// Nur im Profil Extended verfügbar. Profile nach EN 16931 verwenden dieses Feld nicht.
+        /// </summary>
+        public decimal? TotalAllowanceChargeAmount { get; set; }
+
+        /// <summary>
         /// Detailed information about the invoicing period
         ///
         /// Invoicing period start date

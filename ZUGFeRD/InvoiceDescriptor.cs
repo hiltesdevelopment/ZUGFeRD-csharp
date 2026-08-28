@@ -440,6 +440,13 @@ namespace s2industries.ZUGFeRD
         public List<PaymentTerms> PaymentTerms { get; internal set; } = new List<PaymentTerms>();
 
         /// <summary>
+        /// Detailangaben zu Vorauszahlungen im Extended-Profil.
+        ///
+        /// BG-X-45
+        /// </summary>
+        public List<AdvancePayment> AdvancePayments { get; internal set; } = new List<AdvancePayment>();
+
+        /// <summary>
         /// A group of business terms providing information about a preceding invoices.
         ///
         /// To be used in case:
@@ -1386,6 +1393,38 @@ namespace s2industries.ZUGFeRD
         {
             return this._InvoiceReferencedDocuments;
         } // !GetInvoiceReferencedDocuments()
+
+
+        /// <summary>
+        /// Fügt Detailangaben zu einer Vorauszahlung hinzu.
+        ///
+        /// BG-X-45
+        /// </summary>
+        /// <param name="paidAmount">Gezahlter Vorauszahlungsbetrag</param>
+        /// <param name="receivedDateTime">Datum des Zahlungseingangs</param>
+        /// <returns>Hinzugefügte Vorauszahlung</returns>
+        public AdvancePayment AddAdvancePayment(decimal paidAmount, DateTime? receivedDateTime = null)
+        {
+            AdvancePayment advancePayment = new AdvancePayment
+            {
+                PaidAmount = paidAmount,
+                FormattedReceivedDateTime = receivedDateTime
+            };
+            AdvancePayments.Add(advancePayment);
+            return advancePayment;
+        } // !AddAdvancePayment()
+
+
+        /// <summary>
+        /// Liefert alle Detailangaben zu Vorauszahlungen.
+        ///
+        /// BG-X-45
+        /// </summary>
+        /// <returns>Liste der Vorauszahlungen</returns>
+        public List<AdvancePayment> GetAdvancePayments()
+        {
+            return AdvancePayments;
+        } // !GetAdvancePayments()
 
 
         /// <summary>
