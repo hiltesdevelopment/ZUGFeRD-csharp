@@ -72,6 +72,11 @@ namespace s2industries.ZUGFeRD
             foreach (TradeLineItem item in descriptor.GetTradeLineItems())
             {
                 decimal total = decimal.Multiply(item.NetUnitPrice, item.BilledQuantity);
+
+                // BT-131 includes BG-28 line charges and excludes BG-27 line allowances.
+                total -= item.GetSpecifiedTradeAllowances().Sum(allowance => allowance.ActualAmount);
+                total += item.GetSpecifiedTradeCharges().Sum(charge => charge.ActualAmount);
+
                 lineTotal += total;
 
                 if (!lineTotalPerTax.ContainsKey(item.TaxPercent))
@@ -200,16 +205,19 @@ namespace s2industries.ZUGFeRD
                 retval.IsValid = false;
             }
 
-            /*
-             * @todo Richtige Validierung implementieren
-             */
-            if (Math.Abs(taxBasisTotal - taxBasisTotal) < 0.01m)
+            // The sum of VAT category taxable amounts (BT-116) must equal the invoice total amount without VAT (BT-109).
+            if (!descriptor.TaxBasisAmount.HasValue)
+            {
+                retval.Messages.Add("trade.settlement.monetarySummation.taxBasisTotal Message: Kein TaxBasisAmount vorhanden");
+                retval.IsValid = false;
+            }
+            else if (Math.Abs(taxBasisTotal - descriptor.TaxBasisAmount.Value) < 0.01m)
             {
                 retval.Messages.Add(String.Format("trade.settlement.monetarySummation.taxBasisTotal Message: Berechneter Wert ist wie vorhanden:[{0:0.0000}]", taxBasisTotal));
             }
             else
             {
-                retval.Messages.Add(String.Format("trade.settlement.monetarySummation.taxBasisTotal Message: Berechneter Wert ist[{0:0.0000}] aber tatsächliche vorhander Wert ist[{1:0.0000}] | Actual value: {1:0.0000})", taxBasisTotal, taxBasisTotal));
+                retval.Messages.Add(String.Format("trade.settlement.monetarySummation.taxBasisTotal Message: Berechneter Wert ist[{0:0.0000}] aber tatsächlicher vorhandener Wert ist[{1:0.0000}] | Actual value: {1:0.0000})", taxBasisTotal, descriptor.TaxBasisAmount.Value));
                 retval.IsValid = false;
             }
 
