@@ -22,7 +22,8 @@ namespace s2industries.ZUGFeRD.Test
     [TestClass]
     public class InvoiceValidatorTests
     {
-        private static InvoiceDescriptor CreateBalancedInvoice(decimal lineAllowance = 0m, decimal lineCharge = 0m)
+        private static InvoiceDescriptor CreateBalancedInvoice(decimal lineAllowance = 0m, decimal lineCharge = 0m,
+            decimal prepaidAmount = 0m, decimal roundingAmount = 0m)
         {
             InvoiceDescriptor descriptor = InvoiceDescriptor.CreateInvoice("RE-4711", new DateTime(2026, 1, 15), CurrencyCodes.EUR);
             TradeLineItem lineItem = descriptor.AddTradeLineItem(
@@ -46,6 +47,7 @@ namespace s2industries.ZUGFeRD.Test
 
             decimal lineTotal = 200m - lineAllowance + lineCharge;
             decimal taxTotal = lineTotal * 19m / 100m;
+            decimal grandTotal = lineTotal + taxTotal;
             lineItem.LineTotalAmount = lineTotal;
             descriptor.AddApplicableTradeTax(lineTotal, 19m, taxTotal, TaxTypes.VAT, TaxCategoryCodes.S);
             descriptor.SetTotals(
@@ -54,9 +56,10 @@ namespace s2industries.ZUGFeRD.Test
                 allowanceTotalAmount: 0m,
                 taxBasisAmount: lineTotal,
                 taxTotalAmount: taxTotal,
-                grandTotalAmount: lineTotal + taxTotal,
-                totalPrepaidAmount: 0m,
-                duePayableAmount: lineTotal + taxTotal);
+                grandTotalAmount: grandTotal,
+                totalPrepaidAmount: prepaidAmount,
+                duePayableAmount: grandTotal - prepaidAmount + roundingAmount,
+                roundingAmount: roundingAmount);
             return descriptor;
         }
 
@@ -129,6 +132,68 @@ namespace s2industries.ZUGFeRD.Test
             ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
 
             Assert.IsTrue(result.IsValid, string.Join(Environment.NewLine, result.Messages));
+        }
+
+
+        [TestMethod]
+        public void ValidInvoiceWithPrepaidAmountIsAccepted()
+        {
+            InvoiceDescriptor descriptor = CreateBalancedInvoice(prepaidAmount: 50m);
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsTrue(result.IsValid, string.Join(Environment.NewLine, result.Messages));
+        }
+
+
+        [TestMethod]
+        public void ValidInvoiceWithRoundingAmountIsAccepted()
+        {
+            InvoiceDescriptor descriptor = CreateBalancedInvoice(roundingAmount: 0.05m);
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsTrue(result.IsValid, string.Join(Environment.NewLine, result.Messages));
+        }
+
+
+        [TestMethod]
+        public void MissingDuePayableAmountIsReported()
+        {
+            InvoiceDescriptor descriptor = CreateBalancedInvoice();
+            descriptor.DuePayableAmount = null;
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Messages.Any(message => message.Contains("Kein DuePayableAmount vorhanden", StringComparison.Ordinal)));
+        }
+
+
+        [TestMethod]
+        public void InvalidDuePayableAmountIsReported()
+        {
+            InvoiceDescriptor descriptor = CreateBalancedInvoice(prepaidAmount: 50m, roundingAmount: 0.05m);
+            descriptor.DuePayableAmount = descriptor.GrandTotalAmount.Value;
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Messages.Any(message => message.Contains("duePayable", StringComparison.Ordinal)));
+        }
+
+
+        [TestMethod]
+        public void DuePayableUsesDeclaredGrandTotalAmount()
+        {
+            InvoiceDescriptor descriptor = CreateBalancedInvoice(prepaidAmount: 50m);
+            descriptor.GrandTotalAmount += 1m;
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Messages.Any(message => message.Contains(
+                "monetarySummation.duePayable Message: Berechneter Wert ist[", StringComparison.Ordinal)));
         }
     }
 }
