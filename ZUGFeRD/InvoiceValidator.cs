@@ -17,7 +17,6 @@
  * under the License.
  */
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -68,7 +67,6 @@ namespace s2industries.ZUGFeRD
             int lineCounter = 0;
 
             decimal lineTotal = 0m;
-            Dictionary<decimal, decimal> lineTotalPerTax = new Dictionary<decimal, decimal>();
             foreach (TradeLineItem item in descriptor.GetTradeLineItems())
             {
                 decimal total = decimal.Multiply(item.NetUnitPrice, item.BilledQuantity);
@@ -78,12 +76,6 @@ namespace s2industries.ZUGFeRD
                 total += item.GetSpecifiedTradeCharges().Sum(charge => charge.ActualAmount);
 
                 lineTotal += total;
-
-                if (!lineTotalPerTax.ContainsKey(item.TaxPercent))
-                {
-                    lineTotalPerTax.Add(item.TaxPercent, new decimal());
-                }
-                lineTotalPerTax[item.TaxPercent] += total;
 
                 /*
                 retval.Add(String.Format("==> {0}:", ++lineCounter));
@@ -107,11 +99,6 @@ namespace s2industries.ZUGFeRD
             {
                 retval.Messages.Add(String.Format("==> added {0:0.00} to {1:0.00}%", -charge.Amount, charge.Tax.Percent));
 
-                if (!lineTotalPerTax.ContainsKey(charge.Tax.Percent))
-                {
-                    lineTotalPerTax.Add(charge.Tax.Percent, new decimal());
-                }
-                lineTotalPerTax[charge.Tax.Percent] += charge.Amount;
                 chargeTotal += charge.Amount;
             }
 
@@ -120,11 +107,6 @@ namespace s2industries.ZUGFeRD
             {
                 retval.Messages.Add(String.Format("==> added {0:0.00} to {1:0.00}%", -allowance.Amount, allowance.Tax.Percent));
 
-                if (!lineTotalPerTax.ContainsKey(allowance.Tax.Percent))
-                {
-                    lineTotalPerTax.Add(allowance.Tax.Percent, new decimal());
-                }
-                lineTotalPerTax[allowance.Tax.Percent] -= allowance.Amount;
                 allowanceTotal += allowance.Amount;
             }
 
@@ -136,11 +118,31 @@ namespace s2industries.ZUGFeRD
             retval.Messages.Add("Calculating tax total...");
 
             decimal taxTotal = 0.0m;
-            foreach (KeyValuePair<decimal, decimal> kv in lineTotalPerTax)
+            foreach (Tax tax in descriptor.GetApplicableTradeTaxes())
             {
-                decimal taxTotalForLine = Decimal.Divide(Decimal.Multiply(kv.Value, kv.Key), 100.0m);
-                taxTotal += taxTotalForLine;
-                retval.Messages.Add(String.Format("===> {0:0.0000} x {1:0.00}% = {2:0.00}", kv.Value, kv.Key, taxTotalForLine));
+                if (!tax.TypeCode.HasValue)
+                {
+                    retval.Messages.Add("Tax type code is required for every tax breakdown");
+                    retval.IsValid = false;
+                    continue;
+                }
+                if (tax.TypeCode != TaxTypes.VAT)
+                {
+                    continue;
+                }
+
+                // BR-CO-17 requires rounding each VAT breakdown before summing the amounts to BT-110.
+                decimal expectedTaxAmount = Math.Round(tax.BasisAmount * tax.Percent / 100m, 2, MidpointRounding.AwayFromZero);
+                taxTotal += expectedTaxAmount;
+                retval.Messages.Add(String.Format("===> {0:0.0000} x {1:0.00}% = {2:0.00}", tax.BasisAmount, tax.Percent, expectedTaxAmount));
+
+                if (tax.TaxAmount != expectedTaxAmount)
+                {
+                    retval.Messages.Add(String.Format(
+                        "BR-CO-17: Berechneter Steuerbetrag ist[{0:0.0000}] aber vorhandener Steuerbetrag ist[{1:0.0000}] bei Bemessungsgrundlage[{2:0.0000}] und Steuersatz[{3:0.0000}]",
+                        expectedTaxAmount, tax.TaxAmount, tax.BasisAmount, tax.Percent));
+                    retval.IsValid = false;
+                }
             }
 
             decimal grandTotal = lineTotal - allowanceTotal + taxTotal + chargeTotal;
@@ -165,7 +167,9 @@ namespace s2industries.ZUGFeRD
                                      ));
 
 
-            decimal taxBasisTotal = descriptor.GetApplicableTradeTaxes().Sum(t => t.BasisAmount);
+            decimal taxBasisTotal = descriptor.GetApplicableTradeTaxes()
+                .Where(tax => tax.TypeCode == TaxTypes.VAT)
+                .Sum(tax => tax.BasisAmount);
             decimal allowanceTotalSummedPerTradeAllowanceCharge = descriptor.GetTradeAllowances().Sum(a => a.ActualAmount);
             decimal chargesTotalSummedPerTradeAllowanceCharge = descriptor.GetTradeCharges().Sum(c => c.ActualAmount);
 
