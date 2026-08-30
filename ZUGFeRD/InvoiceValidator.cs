@@ -72,6 +72,11 @@ namespace s2industries.ZUGFeRD
             foreach (TradeLineItem item in descriptor.GetTradeLineItems())
             {
                 decimal total = decimal.Multiply(item.NetUnitPrice, item.BilledQuantity);
+
+                // BT-131 includes BG-28 line charges and excludes BG-27 line allowances.
+                total -= item.GetSpecifiedTradeAllowances().Sum(allowance => allowance.ActualAmount);
+                total += item.GetSpecifiedTradeCharges().Sum(charge => charge.ActualAmount);
+
                 lineTotal += total;
 
                 if (!lineTotalPerTax.ContainsKey(item.TaxPercent))
@@ -139,7 +144,11 @@ namespace s2industries.ZUGFeRD
             }
 
             decimal grandTotal = lineTotal - allowanceTotal + taxTotal + chargeTotal;
-            decimal prepaid = 0m; // TODO: calculcate
+            decimal prepaid = descriptor.TotalPrepaidAmount.GetValueOrDefault();
+            decimal rounding = descriptor.RoundingAmount.GetValueOrDefault();
+
+            // BR-CO-16: BT-115 equals BT-112 minus BT-113 plus BT-114.
+            decimal duePayable = grandTotal - prepaid + rounding;
 
             retval.Messages.Add(String.Format("Recalculated tax total = {0:0.00}", taxTotal));
             retval.Messages.Add(String.Format("Recalculated grand total = {0:0.0000} EUR(tax basis total + tax total)", grandTotal));
@@ -152,7 +161,7 @@ namespace s2industries.ZUGFeRD
                                      taxTotal,
                                      grandTotal,
                                      prepaid,
-                                     lineTotal - allowanceTotal + taxTotal + chargeTotal + prepaid
+                                     duePayable
                                      ));
 
 
@@ -200,16 +209,38 @@ namespace s2industries.ZUGFeRD
                 retval.IsValid = false;
             }
 
-            /*
-             * @todo Richtige Validierung implementieren
-             */
-            if (Math.Abs(taxBasisTotal - taxBasisTotal) < 0.01m)
+            if (!descriptor.DuePayableAmount.HasValue)
+            {
+                retval.Messages.Add("trade.settlement.monetarySummation.duePayable Message: Kein DuePayableAmount vorhanden");
+                retval.IsValid = false;
+            }
+            else if (descriptor.GrandTotalAmount.HasValue)
+            {
+                decimal expectedDuePayable = descriptor.GrandTotalAmount.Value - prepaid + rounding;
+                if (Math.Abs(expectedDuePayable - descriptor.DuePayableAmount.Value) < 0.01m)
+                {
+                    retval.Messages.Add(String.Format("trade.settlement.monetarySummation.duePayable Message: Berechneter Wert ist wie vorhanden:[{0:0.0000}]", expectedDuePayable));
+                }
+                else
+                {
+                    retval.Messages.Add(String.Format("trade.settlement.monetarySummation.duePayable Message: Berechneter Wert ist[{0:0.0000}] aber tatsächlicher vorhandener Wert ist[{1:0.0000}] | Actual value: {1:0.0000})", expectedDuePayable, descriptor.DuePayableAmount.Value));
+                    retval.IsValid = false;
+                }
+            }
+
+            // The sum of VAT category taxable amounts (BT-116) must equal the invoice total amount without VAT (BT-109).
+            if (!descriptor.TaxBasisAmount.HasValue)
+            {
+                retval.Messages.Add("trade.settlement.monetarySummation.taxBasisTotal Message: Kein TaxBasisAmount vorhanden");
+                retval.IsValid = false;
+            }
+            else if (Math.Abs(taxBasisTotal - descriptor.TaxBasisAmount.Value) < 0.01m)
             {
                 retval.Messages.Add(String.Format("trade.settlement.monetarySummation.taxBasisTotal Message: Berechneter Wert ist wie vorhanden:[{0:0.0000}]", taxBasisTotal));
             }
             else
             {
-                retval.Messages.Add(String.Format("trade.settlement.monetarySummation.taxBasisTotal Message: Berechneter Wert ist[{0:0.0000}] aber tatsächliche vorhander Wert ist[{1:0.0000}] | Actual value: {1:0.0000})", taxBasisTotal, taxBasisTotal));
+                retval.Messages.Add(String.Format("trade.settlement.monetarySummation.taxBasisTotal Message: Berechneter Wert ist[{0:0.0000}] aber tatsächlicher vorhandener Wert ist[{1:0.0000}] | Actual value: {1:0.0000})", taxBasisTotal, descriptor.TaxBasisAmount.Value));
                 retval.IsValid = false;
             }
 
