@@ -64,6 +64,22 @@ namespace s2industries.ZUGFeRD.Test
         }
 
 
+        private static void AddTaxGroup(InvoiceDescriptor descriptor, string name, decimal basisAmount,
+            decimal taxPercent, decimal taxAmount, TaxCategoryCodes categoryCode)
+        {
+            descriptor.AddTradeLineItem(
+                name: name,
+                netUnitPrice: basisAmount,
+                unitCode: QuantityCodes.H87,
+                billedQuantity: 1m,
+                lineTotalAmount: basisAmount,
+                taxType: TaxTypes.VAT,
+                categoryCode: categoryCode,
+                taxPercent: taxPercent);
+            descriptor.AddApplicableTradeTax(basisAmount, taxPercent, taxAmount, TaxTypes.VAT, categoryCode);
+        }
+
+
         [TestMethod]
         public void ValidTaxBasisAmountIsAccepted()
         {
@@ -194,6 +210,88 @@ namespace s2industries.ZUGFeRD.Test
             Assert.IsFalse(result.IsValid);
             Assert.IsTrue(result.Messages.Any(message => message.Contains(
                 "monetarySummation.duePayable Message: Berechneter Wert ist[", StringComparison.Ordinal)));
+        }
+
+
+        [TestMethod]
+        public void TaxAmountsAreRoundedPerTaxGroup()
+        {
+            InvoiceDescriptor descriptor = InvoiceDescriptor.CreateInvoice("RE-ROUND-GROUPS", new DateTime(2026, 1, 15), CurrencyCodes.EUR);
+            AddTaxGroup(descriptor, "Group 19", 0.03m, 19m, 0.01m, TaxCategoryCodes.S);
+            AddTaxGroup(descriptor, "Group 7", 0.08m, 7m, 0.01m, TaxCategoryCodes.S);
+            AddTaxGroup(descriptor, "Group 5", 0.11m, 5m, 0.01m, TaxCategoryCodes.S);
+            descriptor.SetTotals(0.22m, 0m, 0m, 0.22m, 0.03m, 0.25m, 0m, 0.25m);
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsTrue(result.IsValid, string.Join(Environment.NewLine, result.Messages));
+        }
+
+
+        [TestMethod]
+        public void UnroundedTaxAmountIsReported()
+        {
+            InvoiceDescriptor descriptor = InvoiceDescriptor.CreateInvoice("RE-ROUND-INVALID", new DateTime(2026, 1, 15), CurrencyCodes.EUR);
+            AddTaxGroup(descriptor, "Unrounded group", 0.03m, 19m, 0.0057m, TaxCategoryCodes.S);
+            descriptor.SetTotals(0.03m, 0m, 0m, 0.03m, 0.0057m, 0.0357m, 0m, 0.0357m);
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Messages.Any(message => message.Contains("BR-CO-17", StringComparison.Ordinal)));
+        }
+
+
+        [TestMethod]
+        public void NegativeMidpointTaxAmountIsRoundedAwayFromZero()
+        {
+            InvoiceDescriptor descriptor = InvoiceDescriptor.CreateInvoice("RE-ROUND-NEGATIVE", new DateTime(2026, 1, 15), CurrencyCodes.EUR);
+            AddTaxGroup(descriptor, "Negative midpoint", -0.025m, 20m, -0.01m, TaxCategoryCodes.S);
+            descriptor.SetTotals(-0.025m, 0m, 0m, -0.025m, -0.01m, -0.035m, 0m, -0.035m);
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsTrue(result.IsValid, string.Join(Environment.NewLine, result.Messages));
+        }
+
+
+        [TestMethod]
+        public void NonVatTaxDoesNotAffectVatTotals()
+        {
+            InvoiceDescriptor descriptor = CreateBalancedInvoice();
+            descriptor.AddApplicableTradeTax(200m, 5m, 10m, TaxTypes.AAA, TaxCategoryCodes.S);
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsTrue(result.IsValid, string.Join(Environment.NewLine, result.Messages));
+        }
+
+
+        [TestMethod]
+        public void MissingTaxTypeIsReported()
+        {
+            InvoiceDescriptor descriptor = CreateBalancedInvoice();
+            descriptor.Taxes[0].TypeCode = null;
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Messages.Any(message => message.Contains("Tax type code is required", StringComparison.Ordinal)));
+        }
+
+
+        [TestMethod]
+        public void TaxAmountDeviationsWithinSameRateAreReported()
+        {
+            InvoiceDescriptor descriptor = InvoiceDescriptor.CreateInvoice("RE-ROUND-CATEGORY", new DateTime(2026, 1, 15), CurrencyCodes.EUR);
+            AddTaxGroup(descriptor, "Standard rate", 1m, 7m, 0.08m, TaxCategoryCodes.S);
+            AddTaxGroup(descriptor, "Lower rate", 1m, 7m, 0.06m, TaxCategoryCodes.AA);
+            descriptor.SetTotals(2m, 0m, 0m, 2m, 0.14m, 2.14m, 0m, 2.14m);
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsFalse(result.IsValid);
+            Assert.AreEqual(2, result.Messages.Count(message => message.Contains("BR-CO-17", StringComparison.Ordinal)));
         }
     }
 }
