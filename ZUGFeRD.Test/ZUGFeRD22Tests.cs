@@ -29,6 +29,66 @@ namespace s2industries.ZUGFeRD.Test
     {
         private InvoiceProvider _InvoiceProvider = new InvoiceProvider();
 
+        [TestMethod]
+        [DataRow(Profile.Minimum, false)]
+        [DataRow(Profile.BasicWL, false)]
+        [DataRow(Profile.Basic, false)]
+        [DataRow(Profile.Comfort, true)]
+        [DataRow(Profile.Extended, true)]
+        [DataRow(Profile.XRechnung1, true)]
+        [DataRow(Profile.XRechnung, true)]
+        public void TestReceivingAdviceReferencedDocumentProfileBoundaries(Profile profile, bool expected)
+        {
+            InvoiceDescriptor descriptor = _InvoiceProvider.CreateInvoice();
+            descriptor.SetReceivingAdviceReferencedDocument("RECEIPT-23", new DateTime(2026, 8, 15));
+
+            using MemoryStream stream = new MemoryStream();
+            descriptor.Save(stream, ZUGFeRDVersion.Version23, profile);
+            stream.Position = 0;
+
+            InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(stream);
+            Assert.AreEqual(expected, loadedInvoice.ReceivingAdviceReferencedDocument != null);
+            if (expected)
+            {
+                DateTime? expectedDate = profile == Profile.Extended ? new DateTime(2026, 8, 15) : (DateTime?)null;
+                ReceivingAdviceReferencedDocument receivingAdvice = loadedInvoice.ReceivingAdviceReferencedDocument;
+                Assert.IsNotNull(receivingAdvice);
+                Assert.AreEqual("RECEIPT-23", receivingAdvice.ID);
+                Assert.AreEqual(expectedDate, receivingAdvice.IssueDateTime);
+            }
+        } // !TestReceivingAdviceReferencedDocumentProfileBoundaries()
+
+
+        [TestMethod]
+        public void TestReceivingAdviceReferencedDocumentOrder()
+        {
+            InvoiceDescriptor descriptor = _InvoiceProvider.CreateInvoice();
+            descriptor.SetDespatchAdviceReferencedDocument("DESPATCH-23");
+            descriptor.SetReceivingAdviceReferencedDocument("RECEIPT-23");
+            descriptor.SetDeliveryNoteReferenceDocument("DELIVERY-23");
+
+            using MemoryStream stream = new MemoryStream();
+            descriptor.Save(stream, ZUGFeRDVersion.Version23, Profile.Extended);
+            stream.Position = 0;
+
+            XmlDocument document = new XmlDocument();
+            document.Load(stream);
+            XmlNamespaceManager namespaceManager = new XmlNamespaceManager(document.NameTable);
+            namespaceManager.AddNamespace("ram", document.DocumentElement.GetNamespaceOfPrefix("ram"));
+            XmlNode? despatchAdviceNode = document.SelectSingleNode("//ram:ApplicableHeaderTradeDelivery/ram:DespatchAdviceReferencedDocument", namespaceManager);
+            XmlNode? receivingAdviceNode = document.SelectSingleNode("//ram:ApplicableHeaderTradeDelivery/ram:ReceivingAdviceReferencedDocument", namespaceManager);
+            XmlNode? deliveryNoteNode = document.SelectSingleNode("//ram:ApplicableHeaderTradeDelivery/ram:DeliveryNoteReferencedDocument", namespaceManager);
+
+            Assert.IsNotNull(despatchAdviceNode);
+            Assert.IsNotNull(receivingAdviceNode);
+            Assert.IsNotNull(deliveryNoteNode);
+            Assert.IsNotNull(receivingAdviceNode.ParentNode);
+            List<XmlNode> deliveryChildren = receivingAdviceNode.ParentNode.ChildNodes.Cast<XmlNode>().ToList();
+            Assert.IsTrue(deliveryChildren.IndexOf(despatchAdviceNode) < deliveryChildren.IndexOf(receivingAdviceNode));
+            Assert.IsTrue(deliveryChildren.IndexOf(receivingAdviceNode) < deliveryChildren.IndexOf(deliveryNoteNode));
+        } // !TestReceivingAdviceReferencedDocumentOrder()
+
+
 
 
         [TestMethod]

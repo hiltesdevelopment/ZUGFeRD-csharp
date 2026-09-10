@@ -80,6 +80,25 @@ namespace s2industries.ZUGFeRD.Test
         }
 
 
+        private static InvoiceDescriptor CreateInvoiceWithPriceBaseQuantity(decimal netQuantity)
+        {
+            InvoiceDescriptor descriptor = InvoiceDescriptor.CreateInvoice("RE-PRICE-BASE", new DateTime(2026, 1, 15), CurrencyCodes.EUR);
+            TradeLineItem lineItem = descriptor.AddTradeLineItem(
+                name: "Test item",
+                netUnitPrice: 100m,
+                unitCode: QuantityCodes.H87,
+                billedQuantity: 2m,
+                lineTotalAmount: 20m,
+                taxType: TaxTypes.VAT,
+                categoryCode: TaxCategoryCodes.S,
+                taxPercent: 19m);
+            lineItem.NetQuantity = netQuantity;
+            descriptor.AddApplicableTradeTax(20m, 19m, 3.80m, TaxTypes.VAT, TaxCategoryCodes.S);
+            descriptor.SetTotals(20m, 0m, 0m, 20m, 3.80m, 23.80m, 0m, 23.80m);
+            return descriptor;
+        }
+
+
         [TestMethod]
         public void ValidTaxBasisAmountIsAccepted()
         {
@@ -114,6 +133,86 @@ namespace s2industries.ZUGFeRD.Test
 
             Assert.IsFalse(result.IsValid);
             Assert.IsTrue(result.Messages.Any(message => message.Contains("taxBasisTotal", StringComparison.Ordinal)));
+        }
+
+
+        [TestMethod]
+        public void ConsistentlyWrongTaxBasisIsReported()
+        {
+            InvoiceDescriptor descriptor = CreateBalancedInvoice();
+            descriptor.Taxes[0].BasisAmount = 190m;
+            descriptor.Taxes[0].TaxAmount = 36.10m;
+            descriptor.TaxBasisAmount = 190m;
+            descriptor.TaxTotalAmount = 36.10m;
+            descriptor.GrandTotalAmount = 236.10m;
+            descriptor.DuePayableAmount = 236.10m;
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Messages.Any(message => message.Contains("BR-CO-13", StringComparison.Ordinal)));
+        }
+
+
+        [TestMethod]
+        public void DeclaredAllowanceTotalDeviationIsReported()
+        {
+            InvoiceDescriptor descriptor = CreateBalancedInvoice();
+            descriptor.AllowanceTotalAmount = 15m;
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Messages.Any(message => message.Contains("BR-CO-11", StringComparison.Ordinal)));
+        }
+
+
+        [TestMethod]
+        public void DeclaredChargeTotalDeviationIsReported()
+        {
+            InvoiceDescriptor descriptor = CreateBalancedInvoice();
+            descriptor.ChargeTotalAmount = 20m;
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Messages.Any(message => message.Contains("BR-CO-12", StringComparison.Ordinal)));
+        }
+
+
+        [TestMethod]
+        public void MissingLineTotalAmountIsReported()
+        {
+            InvoiceDescriptor descriptor = CreateBalancedInvoice();
+            descriptor.LineTotalAmount = null;
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Messages.Any(message => message.Contains("Kein LineTotalAmount vorhanden", StringComparison.Ordinal)));
+        }
+
+
+        [TestMethod]
+        public void PriceBaseQuantityIsApplied()
+        {
+            InvoiceDescriptor descriptor = CreateInvoiceWithPriceBaseQuantity(10m);
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsTrue(result.IsValid, string.Join(Environment.NewLine, result.Messages));
+        }
+
+
+        [TestMethod]
+        public void ZeroPriceBaseQuantityIsReported()
+        {
+            InvoiceDescriptor descriptor = CreateInvoiceWithPriceBaseQuantity(0m);
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Messages.Any(message => message.Contains("BT-149", StringComparison.Ordinal)));
         }
 
 
@@ -238,7 +337,50 @@ namespace s2industries.ZUGFeRD.Test
             ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
 
             Assert.IsFalse(result.IsValid);
-            Assert.IsTrue(result.Messages.Any(message => message.Contains("BR-CO-17", StringComparison.Ordinal)));
+            Assert.IsTrue(result.Messages.Any(message => message.Contains("BR-DEC-20", StringComparison.Ordinal)));
+        }
+
+
+        [TestMethod]
+        public void TaxAmountWithinBRCO17ToleranceIsAcceptedAndLogged()
+        {
+            InvoiceDescriptor descriptor = InvoiceDescriptor.CreateInvoice("RE-TOLERANCE-OK", new DateTime(2026, 1, 15), CurrencyCodes.EUR);
+            AddTaxGroup(descriptor, "Standard rate", 100m, 19m, 19.50m, TaxCategoryCodes.S);
+            descriptor.SetTotals(100m, 0m, 0m, 100m, 19.50m, 119.50m, 0m, 119.50m);
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsTrue(result.IsValid, string.Join(Environment.NewLine, result.Messages));
+            Assert.IsTrue(result.Messages.Any(message => message.Contains("BR-CO-17 tolerance", StringComparison.Ordinal)));
+        }
+
+
+        [TestMethod]
+        public void ExactFacturXBRCO17BoundaryIsAcceptedAndLogged()
+        {
+            InvoiceDescriptor descriptor = InvoiceDescriptor.CreateInvoice("RE-TOLERANCE-BOUNDARY", new DateTime(2026, 1, 15), CurrencyCodes.EUR);
+            AddTaxGroup(descriptor, "Standard rate", 100m, 19m, 20.00m, TaxCategoryCodes.S);
+            descriptor.SetTotals(100m, 0m, 0m, 100m, 20.00m, 120.00m, 0m, 120.00m);
+
+            // Validation is profile-independent, so preserve the inclusive Factur-X 1.08/1.09 boundary here.
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsTrue(result.IsValid, string.Join(Environment.NewLine, result.Messages));
+            Assert.IsTrue(result.Messages.Any(message => message.Contains("BR-CO-17 tolerance", StringComparison.Ordinal)));
+        }
+
+
+        [TestMethod]
+        public void TaxAmountBeyondBRCO17ToleranceIsReported()
+        {
+            InvoiceDescriptor descriptor = InvoiceDescriptor.CreateInvoice("RE-TOLERANCE-FAIL", new DateTime(2026, 1, 15), CurrencyCodes.EUR);
+            AddTaxGroup(descriptor, "Standard rate", 100m, 19m, 20.50m, TaxCategoryCodes.S);
+            descriptor.SetTotals(100m, 0m, 0m, 100m, 20.50m, 120.50m, 0m, 120.50m);
+
+            ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
+
+            Assert.IsFalse(result.IsValid);
+            Assert.IsTrue(result.Messages.Any(message => message.Contains("BR-CO-17:", StringComparison.Ordinal)));
         }
 
 
@@ -284,9 +426,9 @@ namespace s2industries.ZUGFeRD.Test
         public void TaxAmountDeviationsWithinSameRateAreReported()
         {
             InvoiceDescriptor descriptor = InvoiceDescriptor.CreateInvoice("RE-ROUND-CATEGORY", new DateTime(2026, 1, 15), CurrencyCodes.EUR);
-            AddTaxGroup(descriptor, "Standard rate", 1m, 7m, 0.08m, TaxCategoryCodes.S);
-            AddTaxGroup(descriptor, "Lower rate", 1m, 7m, 0.06m, TaxCategoryCodes.AA);
-            descriptor.SetTotals(2m, 0m, 0m, 2m, 0.14m, 2.14m, 0m, 2.14m);
+            AddTaxGroup(descriptor, "Standard rate", 100m, 7m, 9.00m, TaxCategoryCodes.S);
+            AddTaxGroup(descriptor, "Lower rate", 100m, 7m, 5.00m, TaxCategoryCodes.AA);
+            descriptor.SetTotals(200m, 0m, 0m, 200m, 14.00m, 214.00m, 0m, 214.00m);
 
             ValidationResult result = InvoiceValidator.Validate(descriptor, ZUGFeRDVersion.Version23);
 

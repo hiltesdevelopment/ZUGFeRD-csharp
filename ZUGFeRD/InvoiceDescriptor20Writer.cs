@@ -602,6 +602,24 @@ namespace s2industries.ZUGFeRD
                 _Writer.WriteEndElement(); // !ActualDeliverySupplyChainEvent
             }
 
+            if (this._Descriptor.ReceivingAdviceReferencedDocument != null)
+            {
+                _Writer.WriteStartElement("ram", "ReceivingAdviceReferencedDocument", PROFILE_COMFORT_EXTENDED_XRECHNUNG);
+                _Writer.WriteElementString("ram", "IssuerAssignedID", this._Descriptor.ReceivingAdviceReferencedDocument.ID);
+
+                if (this._Descriptor.ReceivingAdviceReferencedDocument.IssueDateTime.HasValue)
+                {
+                    _Writer.WriteStartElement("ram", "FormattedIssueDateTime", Profile.Extended);
+                    _Writer.WriteStartElement("qdt", "DateTimeString");
+                    _Writer.WriteAttributeString("format", "102");
+                    _Writer.WriteValue(_formatDate(this._Descriptor.ReceivingAdviceReferencedDocument.IssueDateTime.Value));
+                    _Writer.WriteEndElement(); // !qdt:DateTimeString
+                    _Writer.WriteEndElement(); // !ram:FormattedIssueDateTime
+                }
+
+                _Writer.WriteEndElement(); // !ReceivingAdviceReferencedDocument
+            }
+
             if (this._Descriptor.DeliveryNoteReferencedDocument != null)
             {
                 _Writer.WriteStartElement("ram", "DeliveryNoteReferencedDocument");

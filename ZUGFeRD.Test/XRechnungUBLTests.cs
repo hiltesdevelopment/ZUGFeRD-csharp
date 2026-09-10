@@ -1227,6 +1227,34 @@ namespace s2industries.ZUGFeRD.Test
 
 
         [TestMethod]
+        public void TestReceivingAdviceReferencedDocumentRoundtrip()
+        {
+            string reference = Guid.NewGuid().ToString();
+            InvoiceDescriptor descriptor = _InvoiceProvider.CreateInvoice();
+            descriptor.SetReceivingAdviceReferencedDocument(reference, DateTime.Today);
+
+            using MemoryStream stream = new MemoryStream();
+            descriptor.Save(stream, ZUGFeRDVersion.Version23, Profile.XRechnung, ZUGFeRDFormats.UBL);
+            stream.Position = 0;
+
+            XmlDocument document = new XmlDocument();
+            document.Load(stream);
+            XmlNamespaceManager namespaceManager = new XmlNamespaceManager(document.NameTable);
+            Assert.IsNotNull(document.DocumentElement);
+            namespaceManager.AddNamespace("cac", document.DocumentElement.GetNamespaceOfPrefix("cac"));
+            namespaceManager.AddNamespace("cbc", document.DocumentElement.GetNamespaceOfPrefix("cbc"));
+            Assert.AreEqual(reference, document.SelectSingleNode("/*/cac:ReceiptDocumentReference/cbc:ID", namespaceManager)?.InnerText);
+            Assert.IsNull(document.SelectSingleNode("/*/cac:ReceiptDocumentReference/cbc:IssueDate", namespaceManager));
+
+            stream.Position = 0;
+            InvoiceDescriptor loadedInvoice = InvoiceDescriptor.Load(stream);
+            Assert.IsNotNull(loadedInvoice.ReceivingAdviceReferencedDocument);
+            Assert.AreEqual(reference, loadedInvoice.ReceivingAdviceReferencedDocument.ID);
+            Assert.IsNull(loadedInvoice.ReceivingAdviceReferencedDocument.IssueDateTime);
+        } // !TestReceivingAdviceReferencedDocumentRoundtrip()
+
+
+        [TestMethod]
         public void TestSampleCreditNote326()
         {
             string path = @"..\..\..\..\demodata\xRechnung\ubl-cn-br-de-17-test-557-code-326.xml";

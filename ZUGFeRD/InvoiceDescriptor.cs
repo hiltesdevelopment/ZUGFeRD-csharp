@@ -74,6 +74,13 @@ namespace s2industries.ZUGFeRD
         public DespatchAdviceReferencedDocument DespatchAdviceReferencedDocument { get; internal set; } = null;
 
         /// <summary>
+        /// Detailed information about the corresponding receiving advice
+        ///
+        /// BT-15
+        /// </summary>
+        public ReceivingAdviceReferencedDocument ReceivingAdviceReferencedDocument { get; internal set; } = null;
+
+        /// <summary>
         /// Detailed information about the corresponding delivery note
         /// </summary>
         public DeliveryNoteReferencedDocument DeliveryNoteReferencedDocument { get; set; } = null;
@@ -1024,6 +1031,20 @@ namespace s2industries.ZUGFeRD
                 IssueDateTime = despatchAdviceDate
             };
         } // !SetDespatchAdviceReferencedDocument()
+
+        /// <summary>
+        /// Sets the receiving advice reference information
+        /// </summary>
+        /// <param name="receivingAdviceNo">Receiving advice number</param>
+        /// <param name="receivingAdviceDate">Receiving advice date</param>
+        public void SetReceivingAdviceReferencedDocument(string receivingAdviceNo, DateTime? receivingAdviceDate = null)
+        {
+            this.ReceivingAdviceReferencedDocument = new ReceivingAdviceReferencedDocument()
+            {
+                ID = receivingAdviceNo,
+                IssueDateTime = receivingAdviceDate
+            };
+        } // !SetReceivingAdviceReferencedDocument()
 
         /// <summary>
         /// Sets the delivery note reference information

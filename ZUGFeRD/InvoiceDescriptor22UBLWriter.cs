@@ -200,6 +200,14 @@ namespace s2industries.ZUGFeRD
                 _Writer.WriteEndElement(); // !DespatchDocumentReference
             }
 
+            // ReceiptDocumentReference
+            if (this._Descriptor.ReceivingAdviceReferencedDocument != null)
+            {
+                _Writer.WriteStartElement("cac", "ReceiptDocumentReference", Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
+                _Writer.WriteOptionalElementString("cbc", "ID", this._Descriptor.ReceivingAdviceReferencedDocument.ID);
+                _Writer.WriteEndElement(); // !ReceiptDocumentReference
+            }
+
             // ContractDocumentReference
             if (this._Descriptor.ContractReferencedDocument != null)
             {

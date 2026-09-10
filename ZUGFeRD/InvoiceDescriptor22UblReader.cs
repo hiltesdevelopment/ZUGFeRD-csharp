@@ -393,6 +393,12 @@ namespace s2industries.ZUGFeRD
                 retval.SetDespatchAdviceReferencedDocument(despatchDocumentReferenceIdNode.InnerText);
             }
 
+            XmlNode receiptDocumentReferenceIdNode = baseNode.SelectSingleNode("./cac:ReceiptDocumentReference/cbc:ID", nsmgr);
+            if (receiptDocumentReferenceIdNode != null)
+            {
+                retval.SetReceivingAdviceReferencedDocument(receiptDocumentReferenceIdNode.InnerText);
+            }
+
             retval.AddTradePaymentTerms(
                 description: XmlUtils.NodeAsString(doc.DocumentElement, "//cac:PaymentTerms/cbc:Note", nsmgr),
                 dueDate: XmlUtils.NodeAsDateTime(doc.DocumentElement, "//cbc:DueDate", nsmgr)

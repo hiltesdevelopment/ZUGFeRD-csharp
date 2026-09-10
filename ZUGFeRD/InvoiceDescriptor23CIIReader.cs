@@ -235,6 +235,16 @@ namespace s2industries.ZUGFeRD
                 };
             }
 
+            XmlNode receivingAdviceReferencedDocumentNode = doc.DocumentElement.SelectSingleNode("//ram:ApplicableHeaderTradeDelivery/ram:ReceivingAdviceReferencedDocument", nsmgr);
+            if (receivingAdviceReferencedDocumentNode != null)
+            {
+                retval.ReceivingAdviceReferencedDocument = new ReceivingAdviceReferencedDocument()
+                {
+                    ID = XmlUtils.NodeAsString(receivingAdviceReferencedDocumentNode, "ram:IssuerAssignedID", nsmgr),
+                    IssueDateTime = DataTypeReader.ReadFormattedIssueDateTime(receivingAdviceReferencedDocumentNode, "ram:FormattedIssueDateTime", nsmgr)
+                };
+            }
+
             string deliveryNoteID = XmlUtils.NodeAsString(doc.DocumentElement, "//ram:ApplicableHeaderTradeDelivery/ram:DeliveryNoteReferencedDocument/ram:IssuerAssignedID", nsmgr);
             DateTime? deliveryNoteDate = XmlUtils.NodeAsDateTime(doc.DocumentElement, "//ram:ApplicableHeaderTradeDelivery/ram:DeliveryNoteReferencedDocument/ram:FormattedIssueDateTime/udt:DateTimeString", nsmgr);
 
