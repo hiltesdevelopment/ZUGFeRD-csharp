@@ -38,6 +38,7 @@ namespace s2industries.ZUGFeRD
         /// </summary>
         /// <param name="stream"></param>
         /// <returns>The parsed ZUGFeRD invoice</returns>
+        /// <remarks>BT-110 wird bei fehlender Währungszuordnung nur aus einer strukturell eindeutigen Kopfgruppe gelesen (R053).</remarks>
         public override InvoiceDescriptor Load(Stream stream)
         {
             if (!stream.CanRead)
@@ -277,13 +278,15 @@ namespace s2industries.ZUGFeRD
             retval.Payee = _nodeAsParty(doc.DocumentElement, "//cac:PayeeParty", nsmgr);
 
             retval.PaymentReference = XmlUtils.NodeAsString(doc.DocumentElement, "//cac:PaymentMeans/cbc:PaymentID", nsmgr);
-            retval.Currency = EnumExtensions.StringToEnum<CurrencyCodes>(XmlUtils.NodeAsString(doc.DocumentElement, "//cbc:DocumentCurrencyCode", nsmgr));
+            // Der öffentliche Enum-Standard AED ist kein Präsenznachweis für BT-5.
+            // Für die Summenzuordnung zählt nur eine tatsächlich gelesene Dokumentwährung.
+            CurrencyCodes? documentCurrency = EnumExtensions.StringToNullableEnum<CurrencyCodes>(
+                XmlUtils.NodeAsString(doc.DocumentElement, "/*/cbc:DocumentCurrencyCode", nsmgr));
+            retval.Currency = documentCurrency.GetValueOrDefault();
 
-            CurrencyCodes optionalTaxCurrency = EnumExtensions.StringToEnum<CurrencyCodes>(XmlUtils.NodeAsString(doc.DocumentElement, "//cbc:TaxCurrencyCode", nsmgr)); // BT-6
-            if (optionalTaxCurrency != default)
-            {
-                retval.TaxCurrency = optionalTaxCurrency;
-            }
+            // BT-6: AED ist ein gültiger Code, kein Ersatz für eine fehlende Angabe.
+            retval.TaxCurrency = EnumExtensions.StringToNullableEnum<CurrencyCodes>(
+                XmlUtils.NodeAsString(doc.DocumentElement, "/*/cbc:TaxCurrencyCode", nsmgr));
 
             // TODO: Multiple SpecifiedTradeSettlementPaymentMeans can exist for each account/institution (with different SEPA?)
             PaymentMeans tempPaymentMeans = new PaymentMeans()
@@ -408,7 +411,26 @@ namespace s2industries.ZUGFeRD
             retval.ChargeTotalAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement, "//cac:LegalMonetaryTotal/cbc:ChargeTotalAmount", nsmgr);
             retval.AllowanceTotalAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement, "//cac:LegalMonetaryTotal/cbc:AllowanceTotalAmount", nsmgr);
             retval.TaxBasisAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement, "//cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount", nsmgr);
-            retval.TaxTotalAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement, "//cac:TaxTotal/cbc:TaxAmount", nsmgr);
+            if (documentCurrency.HasValue)
+            {
+                retval.TaxTotalAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement,
+                    $"/*/cac:TaxTotal/cbc:TaxAmount[@currencyID='{documentCurrency.Value.EnumToString()}']", nsmgr);
+            }
+            if (!retval.TaxTotalAmount.HasValue)
+            {
+                // R053 kennzeichnet BT-110 durch die eine Kopfgruppe mit Steueraufschlüsselung.
+                // Nur eindeutig zuordenbare Beträge tolerieren; nie das erste BT-111 oder Positionssteuern übernehmen.
+                XmlNodeList taxTotalAmounts = doc.DocumentElement.SelectNodes("/*/cac:TaxTotal[cac:TaxSubtotal]/cbc:TaxAmount", nsmgr);
+                if (taxTotalAmounts?.Count == 1)
+                {
+                    retval.TaxTotalAmount = XmlUtils.NodeAsDecimal(taxTotalAmounts[0], ".", nsmgr);
+                }
+            }
+            if (retval.TaxCurrency.HasValue && (!documentCurrency.HasValue || retval.TaxCurrency.Value != documentCurrency.Value))
+            {
+                retval.TaxTotalAmountInAccountingCurrency = XmlUtils.NodeAsDecimal(doc.DocumentElement,
+                    $"/*/cac:TaxTotal/cbc:TaxAmount[@currencyID='{retval.TaxCurrency.Value.EnumToString()}']", nsmgr);
+            }
             retval.GrandTotalAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement, "//cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount", nsmgr);
             retval.RoundingAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement, "//cac:LegalMonetaryTotal/cbc:PayableRoundingAmount", nsmgr);
             retval.TotalPrepaidAmount = XmlUtils.NodeAsDecimal(doc.DocumentElement, "//cac:LegalMonetaryTotal/cbc:PrepaidAmount", nsmgr);

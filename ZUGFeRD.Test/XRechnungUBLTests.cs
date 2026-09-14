@@ -1170,7 +1170,7 @@ namespace s2industries.ZUGFeRD.Test
         {
             InvoiceDescriptor descriptor = _InvoiceProvider.CreateInvoice();
             int taxCount = descriptor.Taxes.Count;
-            descriptor.AddApplicableTradeTax(123.00m, 23m, 23m, TaxTypes.VAT, TaxCategoryCodes.S, exemptionReasonCode: TaxExemptionReasonCodes.VATEX_EU_132, exemptionReason: "Tax exemption reason");
+            descriptor.AddApplicableTradeTax(123.00m, 0m, 0m, TaxTypes.VAT, TaxCategoryCodes.E, exemptionReasonCode: TaxExemptionReasonCodes.VATEX_EU_132, exemptionReason: "Tax exemption reason");
 
             MemoryStream ms = new MemoryStream();
             descriptor.Save(ms, ZUGFeRDVersion.Version23, Profile.XRechnung, ZUGFeRDFormats.UBL);

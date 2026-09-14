@@ -95,6 +95,25 @@ namespace s2industries.ZUGFeRD
         } // !_formatDecimal()
 
 
+        /// <summary>
+        /// Determines whether a VAT breakdown (BG-23) may carry a VAT exemption reason text (BT-120) or code (BT-121).
+        /// EN 16931 forbids both for the categories listed below.
+        /// </summary>
+        protected static bool _AllowsTaxExemptionReason(TaxCategoryCodes? categoryCode)
+        {
+            switch (categoryCode)
+            {
+                case TaxCategoryCodes.S: // BR-S-10
+                case TaxCategoryCodes.Z: // BR-Z-10
+                case TaxCategoryCodes.L: // BR-AF-10 (IGIC)
+                case TaxCategoryCodes.M: // BR-AG-10 (IPSI)
+                    return false;
+                default:
+                    return true;
+            }
+        } // !_AllowsTaxExemptionReason()
+
+
         protected string _formatDate(DateTime date, bool formatAs102 = true, bool toUBLDate = false)
         {
             if (formatAs102)

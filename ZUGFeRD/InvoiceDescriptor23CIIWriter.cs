@@ -59,6 +59,7 @@ namespace s2industries.ZUGFeRD
         /// <param name="stream">The target stream for saving the invoice</param>
         /// <param name="format">Format of the target file</param>
         /// <param name="options">Optional `InvoiceFormatOptions` for custom formatting of invoice file</param>
+        /// <remarks>BR-53: BT-6 und BT-111 verwenden dieselbe Ausgabebedingung.</remarks>
         public override void Save(InvoiceDescriptor descriptor, Stream stream, ZUGFeRDFormats format = ZUGFeRDFormats.CII, InvoiceFormatOptions options = null)
         {
             if (!stream.CanWrite || !stream.CanSeek)
@@ -901,7 +902,12 @@ namespace s2industries.ZUGFeRD
 
             //   3. TaxCurrencyCode (optional)
             //   BT-6
-            if (this._Descriptor.TaxCurrency.HasValue)
+            // BR-53 verlangt BT-111 zu BT-6; R005 verlangt eine von BT-5 abweichende Währung.
+            // Die gemeinsame Bedingung verhindert BT-6 ohne tatsächlich ausgegebenen Betrag.
+            bool writeAccountingCurrency = this._Descriptor.TaxCurrency.HasValue &&
+                this._Descriptor.TaxCurrency.Value != this._Descriptor.Currency &&
+                this._Descriptor.TaxTotalAmountInAccountingCurrency.HasValue;
+            if (writeAccountingCurrency)
             {
                 _Writer.WriteElementString("ram", "TaxCurrencyCode", this._Descriptor.TaxCurrency.Value.EnumToString(), profile: Profile.Comfort | Profile.Extended | Profile.XRechnung1 | Profile.XRechnung);
             }
@@ -1237,10 +1243,8 @@ namespace s2industries.ZUGFeRD
 
             _writeOptionalAmount(_Writer, "ram", "TaxTotalAmount", this._Descriptor.TaxTotalAmount, forceCurrency: true);               // BT-110: Gesamtbetrag der Rechnungsumsatzsteuer in Rechnungswährung
 
-            // BT-111: TaxTotalAmount in accounting currency — only when BT-6 (TaxCurrency) differs from BT-5 (Currency)
-            if (this._Descriptor.TaxCurrency.HasValue &&
-                this._Descriptor.TaxCurrency.Value != this._Descriptor.Currency &&
-                this._Descriptor.TaxTotalAmountInAccountingCurrency.HasValue)
+            // BT-111: Steuerbetrag in der von BT-5 abweichenden Buchungswährung BT-6.
+            if (writeAccountingCurrency)
             {
                 _Writer.WriteStartElement("ram", "TaxTotalAmount");
                 _Writer.WriteAttributeString("currencyID", this._Descriptor.TaxCurrency.Value.EnumToString());
@@ -1742,8 +1746,7 @@ namespace s2industries.ZUGFeRD
 
                 writer.WriteElementString("ram", "TypeCode", tax.TypeCode.EnumToString());
 
-                // no exemption reason for tax category Z (reverse charge) according to BR-Z-10
-                if (!tax.CategoryCode.HasValue || (tax.CategoryCode.Value != TaxCategoryCodes.Z))
+                if (_AllowsTaxExemptionReason(tax.CategoryCode))
                 {
                     writer.WriteOptionalElementString("ram", "ExemptionReason", tax.ExemptionReason);
                 }
@@ -1770,9 +1773,7 @@ namespace s2industries.ZUGFeRD
                     writer.WriteElementString("ram", "CategoryCode", tax.CategoryCode.EnumToString());
                 }
 
-                // no exemption reason for tax category Z (reverse charge) according to BR-Z-10
-                if (tax.ExemptionReasonCode.HasValue &&
-                    (!tax.CategoryCode.HasValue || (tax.CategoryCode.Value != TaxCategoryCodes.Z)))
+                if (tax.ExemptionReasonCode.HasValue && _AllowsTaxExemptionReason(tax.CategoryCode))
                 {
                     writer.WriteElementString("ram", "ExemptionReasonCode", tax.ExemptionReasonCode?.EnumToString());
                 }
